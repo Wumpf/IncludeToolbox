@@ -80,6 +80,11 @@ namespace IncludeToolbox
         public bool RegexIncludeDelimiter { get; set; } = false;
 
         [Category("Sorting")]
+        [DisplayName("Insert blank line between precedence regex match groups")]
+        [Description("If true, a blank line will be inserted after each group matching one of the precedence regexes.")]
+        public bool BlankAfterRegexGroupMatch { get; set; } = false;
+
+        [Category("Sorting")]
         [DisplayName("Precedence Regexes")]
         [Description("Earlier match means higher sorting priority.\n\" " + IncludeComparer.CurrentFileNameKey + "\" will be replaced with the current file name without extension.")]
         public string[] PrecedenceRegexes {
@@ -127,6 +132,7 @@ namespace IncludeToolbox
             settingsStore.SetBoolean(collectionName, nameof(RemoveEmptyLines), RemoveEmptyLines);
 
             settingsStore.SetBoolean(collectionName, nameof(RegexIncludeDelimiter), RegexIncludeDelimiter);
+            settingsStore.SetBoolean(collectionName, nameof(BlankAfterRegexGroupMatch), BlankAfterRegexGroupMatch);
             var value = string.Join("\n", PrecedenceRegexes);
             settingsStore.SetString(collectionName, nameof(PrecedenceRegexes), value);
             settingsStore.SetInt32(collectionName, nameof(SortByType), (int)SortByType);
@@ -150,6 +156,8 @@ namespace IncludeToolbox
 
             if (settingsStore.PropertyExists(collectionName, nameof(RegexIncludeDelimiter)))
                 RegexIncludeDelimiter = settingsStore.GetBoolean(collectionName, nameof(RegexIncludeDelimiter));
+            if (settingsStore.PropertyExists(collectionName, nameof(BlankAfterRegexGroupMatch)))
+                BlankAfterRegexGroupMatch = settingsStore.GetBoolean(collectionName, nameof(BlankAfterRegexGroupMatch));
             if (settingsStore.PropertyExists(collectionName, nameof(PrecedenceRegexes)))
             {
                 var value = settingsStore.GetString(collectionName, nameof(PrecedenceRegexes));

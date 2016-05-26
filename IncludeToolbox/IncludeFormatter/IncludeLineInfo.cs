@@ -164,8 +164,9 @@ namespace IncludeToolbox.IncludeFormatter
         public string Text
         {
             get { return text; }
+            set { text = value; }
         }
-        private string text;
+        private string text = "";
 
         public string IncludeContent
         {
