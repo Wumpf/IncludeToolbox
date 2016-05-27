@@ -12,14 +12,14 @@ namespace IncludeToolbox.IncludeFormatter
         {
             string currentFilename = documentName.Substring(0, documentName.LastIndexOf('.'));
 
-            this.precedenceRegexes = new string[precedenceRegexes.Length];
-            for (int i = 0; i < this.precedenceRegexes.Length; ++i)
+            PrecedenceRegexes = new string[precedenceRegexes.Length];
+            for (int i = 0; i < PrecedenceRegexes.Length; ++i)
             {
-                this.precedenceRegexes[i] = precedenceRegexes[i].Replace(CurrentFileNameKey, currentFilename);
+                PrecedenceRegexes[i] = precedenceRegexes[i].Replace(CurrentFileNameKey, currentFilename);
             }
         }
 
-        private readonly string[] precedenceRegexes;
+        public string[] PrecedenceRegexes { get; set; }
 
         public int Compare(string lineA, string lineB)
         {
@@ -35,15 +35,15 @@ namespace IncludeToolbox.IncludeFormatter
             }
 
             int precedenceA = 0;
-            for (; precedenceA < precedenceRegexes.Length; ++precedenceA)
+            for (; precedenceA < PrecedenceRegexes.Length; ++precedenceA)
             {
-                if (Regex.Match(lineA, precedenceRegexes[precedenceA]).Success)
+                if (Regex.Match(lineA, PrecedenceRegexes[precedenceA]).Success)
                     break;
             }
             int precedenceB = 0;
-            for (; precedenceB < precedenceRegexes.Length; ++precedenceB)
+            for (; precedenceB < PrecedenceRegexes.Length; ++precedenceB)
             {
-                if (Regex.Match(lineB, precedenceRegexes[precedenceB]).Success)
+                if (Regex.Match(lineB, PrecedenceRegexes[precedenceB]).Success)
                     break;
             }
 
