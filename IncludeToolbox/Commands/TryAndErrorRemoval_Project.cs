@@ -114,24 +114,20 @@ namespace IncludeToolbox.Commands
                 var projectItem = item as ProjectItem;
                 if (projectItem == null)
                     continue;
-                if (projectItem.FileCount > 1)
-                    RecursiveFindFilesInProject(projectItem.ProjectItems, ref projectFiles);
-                else if (projectItem.FileCount == 1)
+
+                Guid projectItemKind = new Guid(projectItem.Kind);
+                if (projectItemKind == VSConstants.GUID_ItemType_VirtualFolder ||
+                    projectItemKind == VSConstants.GUID_ItemType_PhysicalFolder)
                 {
-                    Guid projectItemKind = new Guid(projectItem.Kind);
-                    if (projectItemKind == VSConstants.GUID_ItemType_VirtualFolder ||
-                        projectItemKind == VSConstants.GUID_ItemType_PhysicalFolder)
-                    {
-                        RecursiveFindFilesInProject(projectItem.ProjectItems, ref projectFiles);
-                    }
-                    else if (projectItemKind == VSConstants.GUID_ItemType_PhysicalFile)
-                    {
-                        projectFiles.Enqueue(projectItem);
-                    }
-                    else
-                    {
-                        Output.Instance.WriteLine("Unexpected Error: Unknown projectItem {0} of Kind {1}", projectItem.Name, projectItem.Kind);
-                    }
+                    RecursiveFindFilesInProject(projectItem.ProjectItems, ref projectFiles);
+                }
+                else if (projectItemKind == VSConstants.GUID_ItemType_PhysicalFile)
+                {
+                    projectFiles.Enqueue(projectItem);
+                }
+                else
+                {
+                    Output.Instance.WriteLine("Unexpected Error: Unknown projectItem {0} of Kind {1}", projectItem.Name, projectItem.Kind);
                 }
             }
         }

@@ -92,6 +92,8 @@ namespace IncludeToolbox.IncludeFormatter
                 if (multiLineCommentStart > -1 && multiLineCommentStart < includeOccurence) // Multi line comment started in same line, but before #include.
                     continue;
 
+                if (lines[line].Contains(".inl>") || lines[line].Contains(".inl\"")) // Don't remove inline files.
+                    continue;
 
                 outInfo[line].Delimiter0 = lines[line].IndexOf('\"', includeOccurence + "#include".Length);
                 if (outInfo[line].Delimiter0 == -1)
