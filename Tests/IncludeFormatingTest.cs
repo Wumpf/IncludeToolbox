@@ -46,7 +46,11 @@ namespace Tests
 
 #include ""a.h""
 #include <b.hpp>
-#include <c.hpp>";
+#include <c.hpp>
+
+
+
+";
 
             string expectedFormatedCode_WithBlanks =
 @"#include ""filename.h""
@@ -56,7 +60,11 @@ namespace Tests
 #include ""c_third""
 
 #include ""z_first""
+
 // A comment
+
+
+
 ";
 
 
@@ -87,7 +95,11 @@ namespace Tests
 #include <b.hpp>
 #include <c.hpp>
 #include ""filename.h""
-#include ""a.h""";
+#include ""a.h""
+
+
+
+";
 
 
             string expectedFormatedCode_WithBlanks =
@@ -98,7 +110,11 @@ namespace Tests
 #include ""c_third""
 
 #include ""z_first""
+
 // A comment
+
+
+
 ";
 
 
@@ -244,6 +260,7 @@ namespace Tests
 // A comment
 #include <d>
 #include ""a9""
+
 #else
 #include <a2>
 
