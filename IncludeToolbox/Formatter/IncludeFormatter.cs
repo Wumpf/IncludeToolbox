@@ -120,9 +120,7 @@ namespace IncludeToolbox.Formatter
                                             List<IncludeLineInfo> outSortedList, IEnumerable<IncludeLineInfo> includeBatch)
         {
             // Get enumerator and cancel if batch is empty.
-            var originalLineEnumerator = includeBatch.GetEnumerator();
-            bool hasElements = originalLineEnumerator.MoveNext();
-            if (!hasElements)
+            if (!includeBatch.Any())
                 return false;
 
             // Fetch settings.
@@ -178,40 +176,39 @@ namespace IncludeToolbox.Formatter
             else if (typeSorting == FormatterOptionsPage.TypeSorting.QuotedFirst)
                 sortedIncludes = sortedIncludes.OrderBy(x => x.LineDelimiterType == IncludeLineInfo.DelimiterType.Quotes ? 0 : 1);
 
+            // Merge sorted includes with original non-include lines
+            var sortedIncludeEnumerator = sortedIncludes.GetEnumerator();
+            var sortedLines = includeBatch.Select(originalLine =>
+            {
+                if (originalLine.ContainsActiveInclude)
+                {
+                    // Replace original include with sorted includes
+                    return sortedIncludeEnumerator.MoveNext() ? sortedIncludeEnumerator.Current : new IncludeLineInfo();
+                }
+                return originalLine;
+            });
+
+            if (settings.RemoveEmptyLines)
+            {
+                // Removing duplicates may have introduced new empty lines
+                sortedLines = sortedLines.Where(sortedLine => !string.IsNullOrWhiteSpace(sortedLine.RawLine));
+            }
+
             // Finally, update the actual lines
             {
                 bool firstLine = true;
-
-                foreach (var sortedLine in sortedIncludes)
+                foreach (var sortedLine in sortedLines)
                 {
-                    // Advance until there is an include line to replace. There *must* be one left if sortedIncludes is not empty.
-                    while (!originalLineEnumerator.Current.ContainsActiveInclude)
-                    {
-                        outSortedList.Add(originalLineEnumerator.Current);
-                        hasElements = originalLineEnumerator.MoveNext();
-                        System.Diagnostics.Debug.Assert(hasElements, "There must be an element left in the original list if there are still sorted elements to put back in.");
-                    }
-
-                    bool isLastLine = !originalLineEnumerator.MoveNext();
-
                     // Handle prepending a newline if requested, as long as:
                     // - this include is the begin of a new group
                     // - it's not the first line
-                    // - it's not the last line of the batch.
                     // - the previous line isn't already a non-include
-                    if (groupStarts.Contains(sortedLine) && !firstLine && !isLastLine && outSortedList[outSortedList.Count - 1].ContainsActiveInclude)
+                    if (groupStarts.Contains(sortedLine) && !firstLine && outSortedList[outSortedList.Count - 1].ContainsActiveInclude)
                     {
                         outSortedList.Add(new IncludeLineInfo());
                     }
                     outSortedList.Add(sortedLine);
                     firstLine = false;
-                }
-
-                while (hasElements)
-                {
-                    if (!originalLineEnumerator.Current.ContainsActiveInclude)
-                        outSortedList.Add(originalLineEnumerator.Current);
-                    hasElements = originalLineEnumerator.MoveNext();
                 }
             }
 
