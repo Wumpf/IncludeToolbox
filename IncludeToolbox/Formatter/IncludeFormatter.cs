@@ -8,11 +8,20 @@ namespace IncludeToolbox.Formatter
 {
     public static class IncludeFormatter
     {
-        public static string FormatPath(string absoluteIncludeFilename, FormatterOptionsPage.PathMode pathformat, IEnumerable<string> includeDirectories)
+        public static string FormatPath(string absoluteIncludeFilename,
+                                        FormatterOptionsPage.PathMode pathformat,
+                                        IEnumerable<string> includeDirectories,
+                                        string includeRootDirectory = null)
         {
             if (pathformat == FormatterOptionsPage.PathMode.Absolute)
             {
                 return absoluteIncludeFilename;
+            }
+            else if (pathformat == FormatterOptionsPage.PathMode.Absolute_FromParentDirWithFile &&
+                     null != absoluteIncludeFilename &&
+                     null != includeRootDirectory)
+            {
+                return Utils.MakeRelative(includeRootDirectory, absoluteIncludeFilename);
             }
             else
             {
@@ -47,16 +56,44 @@ namespace IncludeToolbox.Formatter
         /// <summary>
         /// Formats the paths of a given list of include line info.
         /// </summary>
-        private static void FormatPaths(IEnumerable<IncludeLineInfo> lines, FormatterOptionsPage.PathMode pathformat, IEnumerable<string> includeDirectories)
+        private static void FormatPaths(IEnumerable<IncludeLineInfo> lines,
+                                        FormatterOptionsPage.PathMode pathformat,
+                                        FormatterOptionsPage.IgnoreFileRelativeMode ignoreFileRelativeMode,
+                                        IEnumerable<string> includeDirectories,
+                                        string documentDir,
+                                        string includeRootDirectory = null)
         {
             if (pathformat == FormatterOptionsPage.PathMode.Unchanged)
                 return;
 
             foreach (var line in lines)
             {
-                string absoluteIncludeDir = line.TryResolveInclude(includeDirectories, out bool resolvedPath);
+                string absoluteIncludePath = line.TryResolveInclude(includeDirectories, out bool resolvedPath);
                 if (resolvedPath)
-                    line.IncludeContent = FormatPath(absoluteIncludeDir, pathformat, includeDirectories) ?? line.IncludeContent;
+                {
+                    if (pathformat == FormatterOptionsPage.PathMode.Absolute_FromParentDirWithFile &&
+                        includeRootDirectory != null &&
+                        !absoluteIncludePath.StartsWith(includeRootDirectory))
+                    {
+                        continue;
+                    }
+
+                    var currentPathFormat = pathformat;
+                    var currentIncludeRootDirectory = includeRootDirectory;
+                    string includeFilename = Path.GetFileName(absoluteIncludePath);
+                    if ((ignoreFileRelativeMode == FormatterOptionsPage.IgnoreFileRelativeMode.InSameDirectory &&
+                         Path.Combine(documentDir, includeFilename) == absoluteIncludePath) ||
+                        (ignoreFileRelativeMode == FormatterOptionsPage.IgnoreFileRelativeMode.InSameOrSubDirectory &&
+                         absoluteIncludePath.StartsWith(documentDir)))
+                    {
+                        currentPathFormat = FormatterOptionsPage.PathMode.Absolute_FromParentDirWithFile;
+                        currentIncludeRootDirectory = documentDir;
+                    }
+                    line.IncludeContent = FormatPath(absoluteIncludePath,
+                                                     currentPathFormat,
+                                                     includeDirectories,
+                                                     currentIncludeRootDirectory) ?? line.IncludeContent;
+                }
             }
         }
 
@@ -225,8 +262,32 @@ namespace IncludeToolbox.Formatter
         /// <returns>Formated text.</returns>
         public static string FormatIncludes(string text, string documentPath, IEnumerable<string> includeDirectories, FormatterOptionsPage settings)
         {
-            string documentDir = Path.GetDirectoryName(documentPath);
+            string documentDir = Utils.GetExactPathName(Path.GetDirectoryName(documentPath));
             string documentName = Path.GetFileNameWithoutExtension(documentPath);
+            string includeRootDirectory = null;
+            if (settings.PathFormat == FormatterOptionsPage.PathMode.Absolute_FromParentDirWithFile &&
+                !String.IsNullOrWhiteSpace(settings.FromParentDirWithFile))
+            {
+                var dir = new DirectoryInfo(documentDir);
+                while (dir != null)
+                {
+                    if (File.Exists(Path.Combine(dir.FullName, settings.FromParentDirWithFile)))
+                    {
+                        includeRootDirectory = Utils.GetExactPathName(dir.FullName);
+                        break;
+                    }
+
+                    try
+                    {
+                        dir = dir.Parent;
+                    }
+                    catch (System.Security.SecurityException)
+                    {
+                        // Permission denied
+                        break;
+                    }
+                }
+            }
 
             includeDirectories = new string[] { Microsoft.VisualStudio.PlatformUI.PathUtil.Normalize(documentDir) + Path.DirectorySeparatorChar }.Concat(includeDirectories);
 
@@ -236,11 +297,16 @@ namespace IncludeToolbox.Formatter
 
             // Format.
             IEnumerable<string> formatingDirs = includeDirectories;
-            if (settings.IgnoreFileRelative)
+            if (settings.IgnoreFileRelative == FormatterOptionsPage.IgnoreFileRelativeMode.Always)
             {
                 formatingDirs = formatingDirs.Skip(1);
             }
-            FormatPaths(lines, settings.PathFormat, formatingDirs);
+            FormatPaths(lines,
+                        settings.PathFormat,
+                        settings.IgnoreFileRelative,
+                        formatingDirs,
+                        documentDir,
+                        includeRootDirectory);
             FormatDelimiters(lines, settings.DelimiterFormatting);
             FormatSlashes(lines, settings.SlashFormatting);
 

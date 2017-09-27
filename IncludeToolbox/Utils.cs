@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.VCProjectEngine;
+//using Microsoft.VisualStudio.VCProjectEngine;
 
 namespace IncludeToolbox
 {
@@ -35,23 +35,61 @@ namespace IncludeToolbox
             return relativePath;
         }
 
-        public static string GetExactPathName(string pathName)
+        // Shamelessly stolen from https://stackoverflow.com/a/5076517/153079
+        private static string GetFileSystemCasing(string path)
         {
-            if (!File.Exists(pathName) && !Directory.Exists(pathName))
-                return pathName;
-
-            var di = new DirectoryInfo(pathName);
-
-            if (di.Parent != null)
+            if (Path.IsPathRooted(path))
             {
-                return Path.Combine(
-                    GetExactPathName(di.Parent.FullName),
-                    di.Parent.GetFileSystemInfos(di.Name)[0].Name);
+                path = path.TrimEnd(Path.DirectorySeparatorChar); // if you type c:\foo\ instead of c:\foo
+                try
+                {
+                    string name = Path.GetFileName(path);
+                    if (name == "")
+                        return path.ToUpper() + Path.DirectorySeparatorChar; // root reached
+
+                    string parent = Path.GetDirectoryName(path);
+
+                    parent = GetFileSystemCasing(parent);
+
+                    DirectoryInfo diParent = new DirectoryInfo(parent);
+                    FileSystemInfo[] fsiChildren = diParent.GetFileSystemInfos(name);
+                    FileSystemInfo fsiChild = fsiChildren.First();
+                    return fsiChild.FullName;
+                }
+                catch (Exception ex)
+                {
+                    Output.Instance.ErrorMsg("Invalid path: '{0}'\nError:\n{1}", path, ex.Message);
+                }
             }
             else
             {
-                return di.Name.ToUpper();
+                Output.Instance.ErrorMsg("Absolute path needed, not relative: '{0}'", path);
             }
+
+            return "";
+        }
+
+        /// <summary>
+        /// Gets the path name as it exists it the file system, normalizing it.
+        /// </summary>
+        /// <param name="pathName">Path name</param>
+        /// <returns>Normalized path name. Directories are returned with trailing separator.</returns>
+        public static string GetExactPathName(string pathName)
+        {
+            if (!File.Exists(pathName) && !Directory.Exists(pathName))
+            {
+                return pathName;
+            }
+
+            string exactPathName = GetFileSystemCasing(Path.GetFullPath(pathName).Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar));
+            if (exactPathName == "")
+                return pathName;
+
+            // Add trailing slash for directories
+            exactPathName = exactPathName.TrimEnd(Path.DirectorySeparatorChar);
+            if (File.GetAttributes(exactPathName).HasFlag(FileAttributes.Directory))
+                return exactPathName + Path.DirectorySeparatorChar;
+            return exactPathName;
         }
 
         /// <summary>
