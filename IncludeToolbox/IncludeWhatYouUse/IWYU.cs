@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -231,28 +232,20 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 process.StartInfo.RedirectStandardOutput = true;
                 process.StartInfo.RedirectStandardError = true;
                 process.StartInfo.FileName = settings.ExecutablePath;
-                process.StartInfo.Arguments = "";
-
-                // Include-paths and Preprocessor.
-                var includeEntries = VSUtils.GetProjectIncludeDirectories(project, false);
-                process.StartInfo.Arguments = includeEntries.Aggregate("", (current, inc) => current + ("-I \"" + inc + "\" "));
-                process.StartInfo.Arguments = preprocessorDefintions.
-                    Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).
-                    Aggregate(process.StartInfo.Arguments, (current, def) => current + ("-D" + def + " "));
 
                 // Clang options
                 // Disable all diagnostics
-                process.StartInfo.Arguments += "-w ";
+                var iwyuOptions = "-w ";
                 // ... despite of that "invalid token paste" comes through a lot. Disable it.
-                process.StartInfo.Arguments += "-Wno-invalid-token-paste ";
+                iwyuOptions += "-Wno-invalid-token-paste ";
                 // Assume C++14
-                process.StartInfo.Arguments += "-std=c++14 ";
+                // arguments += "-std=c++14 ";
                 // MSVC specific. See https://clang.llvm.org/docs/UsersManual.html#microsoft-extensions
-                process.StartInfo.Arguments += "-fms-compatibility -fms-extensions -fdelayed-template-parsing ";
-                process.StartInfo.Arguments += $"-fmsc-version={VSUtils.GetMSCVerString()} ";
+                iwyuOptions += "-fms-extensions -fms-compatibility -fdelayed-template-parsing ";
+                iwyuOptions += $"-fmsc-version={VSUtils.GetMSCVerString()} ";
                 // Architecture
                 var targetMachine = VSUtils.VCUtils.GetLinkerSetting_TargetMachine(project, out reasonForFailure);
-                if(!targetMachine.HasValue)
+                if (!targetMachine.HasValue)
                     Output.Instance.ErrorMsg("Failed to query for target machine: {0}", reasonForFailure);
                 else
                 {
@@ -263,64 +256,69 @@ namespace IncludeToolbox.IncludeWhatYouUse
                         // It seems iwyu is only really fine with x86-64
 
                         /*case VCProjectUtils.Base.TargetMachineType.X86:
-                            process.StartInfo.Arguments += "-march=x86 ";
+                            clangOptions += "-march=x86 ";
                             break;*/
                         case VCProjectUtils.Base.TargetMachineType.AMD64:
-                            process.StartInfo.Arguments += "-march=x86-64 ";
+                            iwyuOptions += "-march=x86-64 ";
                             break;
-                        /*case VCProjectUtils.Base.TargetMachineType.ARM:
-                            process.StartInfo.Arguments += "-march=arm ";
-                            break;
-                        case VCProjectUtils.Base.TargetMachineType.MIPS:
-                            process.StartInfo.Arguments += "-march=mips ";
-                            break;
-                        case VCProjectUtils.Base.TargetMachineType.THUMB:
-                            process.StartInfo.Arguments += "-march=thumb ";
-                            break;*/
+                            /*case VCProjectUtils.Base.TargetMachineType.ARM:
+                                clangOptions += "-march=arm ";
+                                break;
+                            case VCProjectUtils.Base.TargetMachineType.MIPS:
+                                clangOptions += "-march=mips ";
+                                break;
+                            case VCProjectUtils.Base.TargetMachineType.THUMB:
+                                clangOptions += "-march=thumb ";
+                                break;*/
                     }
                 }
 
-                // icwyu options
+
+                iwyuOptions += "-Xiwyu --verbose=" + settings.LogVerbosity + " ";
+                if (settings.MappingFiles.Length == 0)
                 {
-                    process.StartInfo.Arguments += "-Xiwyu --verbose=" + settings.LogVerbosity + " ";
-                    for (int i = 0; i < settings.MappingFiles.Length; ++i)
-                        process.StartInfo.Arguments += "-Xiwyu --mapping_file=\"" + settings.MappingFiles[i] + "\" ";
-                    if (settings.NoDefaultMappings)
-                        process.StartInfo.Arguments += "-Xiwyu --no_default_mappings ";
-                    if (settings.PCHInCode)
-                        process.StartInfo.Arguments += "-Xiwyu --pch_in_code ";
-                    switch (settings.PrefixHeaderIncludes)
-                    {
-                        case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Add:
-                            process.StartInfo.Arguments += "-Xiwyu --prefix_header_includes=add ";
-                            break;
-                        case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Remove:
-                            process.StartInfo.Arguments += "-Xiwyu --prefix_header_includes=remove ";
-                            break;
-                        case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Keep:
-                            process.StartInfo.Arguments += "-Xiwyu --prefix_header_includes=keep ";
-                            break;
-                    }
-                    if (settings.TransitiveIncludesOnly)
-                        process.StartInfo.Arguments += "-Xiwyu --transitive_includes_only ";
-
-                    // Set max line length so something large so we don't loose comment information.
-                    // Documentation:
-                    // --max_line_length: maximum line length for includes. Note that this only affects comments and alignment thereof,
-                    // the maximum line length can still be exceeded with long file names(default: 80).
-                    process.StartInfo.Arguments += "-Xiwyu --max_line_length=1024 ";
-
-                    // Custom stuff.
-                    process.StartInfo.Arguments += settings.AdditionalParameters;
-                    process.StartInfo.Arguments += " ";
+                    settings.MappingFiles = new string[] { "stl.c.headers.imp", "msvc.imp", "boost-all.imp", "boost-all-private.imp" };
                 }
+                for (int i = 0; i < settings.MappingFiles.Length; ++i)
+                    iwyuOptions += "-Xiwyu --mapping_file=\"" + settings.MappingFiles[i] + "\" ";
+                if (settings.NoDefaultMappings)
+                    iwyuOptions += "-Xiwyu --no_default_mappings ";
+                if (settings.PCHInCode)
+                    iwyuOptions += "-Xiwyu --pch_in_code ";
+                switch (settings.PrefixHeaderIncludes)
+                {
+                    case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Add:
+                        iwyuOptions += "-Xiwyu --prefix_header_includes=add ";
+                        break;
+                    case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Remove:
+                        iwyuOptions += "-Xiwyu --prefix_header_includes=remove ";
+                        break;
+                    case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Keep:
+                        iwyuOptions += "-Xiwyu --prefix_header_includes=keep ";
+                        break;
+                }
+                if (settings.TransitiveIncludesOnly)
+                    iwyuOptions += "-Xiwyu --transitive_includes_only ";
 
+                // Set max line length so something large so we don't loose comment information.
+                // Documentation:
+                // --max_line_length: maximum line length for includes. Note that this only affects comments and alignment thereof,
+                // the maximum line length can still be exceeded with long file names(default: 80).
+                iwyuOptions += "-Xiwyu --max_line_length=1024 ";
 
-                // Finally, the file itself.
-                process.StartInfo.Arguments += "\"";
-                process.StartInfo.Arguments += fullFileName;
-                process.StartInfo.Arguments += "\"";
+                // Include-paths and Preprocessor.
+                var includeEntries = VSUtils.GetProjectIncludeDirectories(project, false);
+                var includes = includeEntries.Aggregate("", (current, inc) => current + ("-I \"" + Regex.Escape(inc) + "\" "));
 
+                var defines = " -D " + string.Join(" -D", preprocessorDefintions.Split(';'));
+
+                // write support file. Long argument lists lead to an error. Support files are the solution here.
+                // https://github.com/Wumpf/IncludeToolbox/issues/36
+                var supportFile = Path.GetTempFileName();
+                var supportContent = includes + " " + defines + " " + Regex.Escape(fullFileName);                
+                File.WriteAllText(supportFile, supportContent);
+
+                process.StartInfo.Arguments = $"{iwyuOptions} {settings.AdditionalParameters} @{supportFile}";
                 Output.Instance.Write("Running command '{0}' with following arguments:\n{1}\n\n", process.StartInfo.FileName, process.StartInfo.Arguments);
 
                 // Start the child process.
