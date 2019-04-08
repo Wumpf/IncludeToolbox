@@ -44,6 +44,8 @@ namespace IncludeToolbox
                 vcUtils = new VCProjectUtils.VS14.VCHelper();
             else if (dte.Version.StartsWith("15."))
                 vcUtils = new VCProjectUtils.VS15.VCHelper();
+            else 
+                vcUtils = new VCProjectUtils.VS16.VCHelper();
 
             return vcUtils;
         }
@@ -60,6 +62,8 @@ namespace IncludeToolbox
                 return "1900";
             else if (dte.Version.StartsWith("15."))
                 return "1910";
+            else if (dte.Version.StartsWith("16."))
+                return "1920";
             else
                 throw new NotImplementedException("Unknown MSVC version!");
         }

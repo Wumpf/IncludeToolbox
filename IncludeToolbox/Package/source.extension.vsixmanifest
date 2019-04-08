@@ -10,21 +10,22 @@
         <Tags>Include, Include What You Use, IWYU, Include Formatting, Include Sorting, #include, Include Removal</Tags>
     </Metadata>
     <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0,17.0)" />
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0,18.0)" />
     </Installation>
     <Dependencies>
         <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-        <Dependency Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" d:Source="Installed" Version="[14.0,17.0)" />
+        <Dependency Id="Microsoft.VisualStudio.MPF.14.0" DisplayName="Visual Studio MPF 14.0" d:Source="Installed" Version="[14.0,18.0)" />
     </Dependencies>
     <Assets>
         <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VCProjectUtils.Base" Path="|VCProjectUtils.Base|" AssemblyName="|VCProjectUtils.Base;AssemblyName|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VCProjectUtils.VS14" Path="|VCProjectUtils.VS14|" AssemblyName="|VCProjectUtils.VS14;AssemblyName|" />
         <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VCProjectUtils.VS15" Path="|VCProjectUtils.VS15|" AssemblyName="|VCProjectUtils.VS15;AssemblyName|" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="VCProjectUtils.VS16" Path="|VCProjectUtils.VS16|" AssemblyName="|VCProjectUtils.VS16;AssemblyName|" />
     </Assets>
     <Prerequisites>
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0.25904.2,17.0)" DisplayName="Visual Studio core editor" />
-        <Prerequisite Id="Microsoft.VisualStudio.Component.VC.CoreIde" Version="[15.0.25904.2,17.0)" DisplayName="Visual Studio C++ core features" />
-        <Prerequisite Id="Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core" Version="[15.0.25904.2,17.0)" DisplayName="Visual Studio C++ core features" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0.28315.86,18.0)" DisplayName="Visual Studio core editor" />
+        <Prerequisite Id="Microsoft.VisualStudio.Component.VC.CoreIde" Version="[15.0.25904.2,18.0)" DisplayName="Visual Studio C++ core features" />
+        <Prerequisite Id="Microsoft.VisualStudio.ComponentGroup.NativeDesktop.Core" Version="[15.0.25904.2,18.0)" DisplayName="Visual Studio C++ core features" />
     </Prerequisites>
 </PackageManifest>

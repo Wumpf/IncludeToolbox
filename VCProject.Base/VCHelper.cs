@@ -6,6 +6,8 @@ using VCProjectUtils.Base;
 namespace VCProjectUtils.VS14
 #elif VC15
 namespace VCProjectUtils.VS15
+#elif VC16
+namespace VCProjectUtils.VS16
 #endif
 {
     public class VCHelper : IVCHelper

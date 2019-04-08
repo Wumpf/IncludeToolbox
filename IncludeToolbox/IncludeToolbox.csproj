@@ -210,6 +210,10 @@
       <Project>{c62f09bf-1867-4ae7-abe2-7a127e18f410}</Project>
       <Name>VCProjectUtils.VS15</Name>
     </ProjectReference>
+    <ProjectReference Include="..\VCProject.VS16\VCProjectUtils.VS16.csproj">
+      <Project>{91218f17-a106-4652-add3-a445c631286d}</Project>
+      <Name>VCProjectUtils.VS16</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
