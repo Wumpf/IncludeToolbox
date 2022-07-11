@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 namespace IncludeToolbox
 {
     [Guid("B822F53B-32C0-4560-9A84-2F9DA7AB0E4C")]
+    [ComVisible(true)]
     public class FormatterOptionsPage : OptionsPage
     {
         public const string SubCategory = "Include Formatter";

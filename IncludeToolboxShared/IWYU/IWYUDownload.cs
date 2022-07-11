@@ -128,7 +128,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
             onProgressUpdate("Unpacking...", "", -1.0f);
             await Task.Run(() =>
             {
-                using (var zipArchive = new ZipArchive(File.OpenRead(targetZipFile), ZipArchiveMode.Read)) 
+                using (var zipArchive = new ZipArchive(File.OpenRead(targetZipFile), ZipArchiveMode.Read))
                 {
                     // Don't want to have the top level folder if any,
                     string topLevelFolderName = "";

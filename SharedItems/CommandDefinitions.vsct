@@ -156,8 +156,8 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-			<Bitmap guid="guidIconsCommon" href="..\Resources\IncludeFormatterIcons.png" usedList="iconFormatter, iconIWYU, iconTrialAndError, iconExplorer"/>
-			<Bitmap guid="guidIconsGraphWindowToolbar" href="..\Resources\IncludeGraphToolbarIcons.png" usedList="iconRefresh, iconSaveGraph"/>
+			<Bitmap guid="guidIconsCommon" href="../SharedItems/Resources/IncludeFormatterIcons.png" usedList="iconFormatter, iconIWYU, iconTrialAndError, iconExplorer"/>
+			<Bitmap guid="guidIconsGraphWindowToolbar" href="../SharedItems/Resources/IncludeGraphToolbarIcons.png" usedList="iconRefresh, iconSaveGraph"/>
 		</Bitmaps>
 	</Commands>
 
