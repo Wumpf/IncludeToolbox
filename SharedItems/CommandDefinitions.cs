@@ -32,16 +32,22 @@ namespace IncludeToolbox
 
         public const string guidIconsCommonString = "dd14909e-b406-4cfa-b492-08b8127679df";
         public static Guid guidIconsCommon = new Guid(guidIconsCommonString);
+
+        public const string GHeaderOnlyString = "a34e853e-8679-4a07-918e-982a1b3b0a6b";
+        public static Guid GHeaderOnly = new Guid(GHeaderOnlyString);
+
+        public const string GOnlyVCString = "1175290a-3e8f-4718-868c-c08b5d2b09a7";
+        public static Guid GOnlyVC = new Guid(GOnlyVCString);
     }
     /// <summary>
     /// Helper class that encapsulates all CommandIDs uses across VS Package.
     /// </summary>
     internal sealed partial class PackageIds
     {
-        public const int EditMenuGroup = 0x1020;
-        public const int FormatIncludesId = 0x0100;
-        public const int IncludeWhatYouUseId = 0x0103;
-        public const int TrialAndErrorRemovalId = 0x0104;
+        public const int ContextMenuGroup = 0x0001;
+        public const int FormatIncludesId = 0x0010;
+        public const int IncludeWhatYouUseId = 0x0011;
+        public const int TrialAndErrorRemovalId = 0x0012;
         public const int IncludeGraphToolWindowGroup = 0x1000;
         public const int IncludeGraphToolWindowCommandId = 0x0102;
         public const int ProjectMenuGroup = 0x1000;

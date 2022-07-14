@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace IncludeToolbox.IncludeWhatYouUse
@@ -14,13 +13,42 @@ namespace IncludeToolbox.IncludeWhatYouUse
     /// <summary>
     /// Functions for downloading and versioning of the iwyu installation.
     /// </summary>
-    static public class IWYUDownload
+    public class IWYUDownload
     {
-        public const string DisplayRepositorURL = @"https://github.com/Wumpf/iwyu_for_vs_includetoolbox";
-        private const string DownloadRepositorURL = @"https://github.com/Wumpf/iwyu_for_vs_includetoolbox/archive/master.zip";
-        private const string LatestCommitQuery = @"https://api.github.com/repos/Wumpf/iwyu_for_vs_includetoolbox/git/refs/heads/master";
+        public static readonly string DisplayRepositorURL = @"https://github.com/Agrael1/BuildIWYU";
+        private static readonly string DownloadRepositorURL = @"https://github.com/Agrael1/BuildIWYU/archive/main.zip";
+        private static readonly string LatestCommitQuery = @"https://api.github.com/repos/Agrael1/BuildIWYU/git/refs/heads/main";
 
-        private static async Task<string> GetCurrentVersionOnline()
+        public static string GetDefaultFolder()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "iwyu");
+        }
+        public static string GetDefaultExecutablePath()
+        {
+            return Path.Combine(GetDefaultFolder(), "include-what-you-use.exe");
+        }
+        static public string GetVersionFilePath()
+        {
+            return Path.Combine(GetDefaultFolder(), "version");
+        }
+
+        public delegate void OnChangeDelegate(string Section, string Status, float percent);
+        
+
+
+        public event OnChangeDelegate OnProgress;
+        WebClient client;
+
+        protected void OnProgressEvent(string Section, string Status, float percent)
+        {
+            OnProgress?.Invoke(Section, Status, percent);
+        }
+
+
+
+
+
+        private static async Task<string> GetVersionOnlineAsync()
         {
             using (var httpClient = new HttpClient())
             {
@@ -35,7 +63,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 }
                 catch (HttpRequestException e)
                 {
-                    Output.Instance.WriteLine($"Failed to query IWYU version from {DownloadRepositorURL}: {e}");
+                    _ = Output.WriteLineAsync($"Failed to query IWYU version from {DownloadRepositorURL}: {e}");
                     return "";
                 }
 
@@ -45,18 +73,12 @@ namespace IncludeToolbox.IncludeWhatYouUse
             }
         }
 
-        public static string GetVersionFilePath(string iwyuExectuablePath)
-        {
-            string directory = Path.GetDirectoryName(iwyuExectuablePath);
-            return Path.Combine(directory, "version");
-        }
-
-        private static string GetCurrentVersionHarddrive(string iwyuExectuablePath)
+        private static string GetCurrentVersionHarddrive()
         {
             // Read current version.
             try
             {
-                return File.ReadAllText(GetVersionFilePath(iwyuExectuablePath));
+                return File.ReadAllText(GetVersionFilePath());
             }
             catch
             {
@@ -64,111 +86,83 @@ namespace IncludeToolbox.IncludeWhatYouUse
             }
         }
 
-        public static async Task<bool> IsNewerVersionAvailableOnline(string executablePath)
+        public static async Task<bool> IsNewerVersionAvailableOnlineAsync()
         {
-            string currentVersion = GetCurrentVersionHarddrive(executablePath);
-            string onlineVersion = await GetCurrentVersionOnline();
+            string currentVersion = GetCurrentVersionHarddrive();
+            string onlineVersion = await GetVersionOnlineAsync();
             return currentVersion != onlineVersion;
         }
 
-        /// <summary>
-        /// Callback for download progress.
-        /// </summary>
-        /// <param name="section">General stage.</param>
-        /// <param name="status">Sub status, may be empty.</param>
-        /// <param name="percentage">Progress in percent for current section. -1 is there is none.</param>
-        public delegate void DownloadProgressUpdate(string section, string status, float percentage);
 
-        /// <summary>
-        /// Downloads iwyu from default download repository.
-        /// </summary>
-        /// <remarks>
-        /// Throws an exception if anything goes wrong (and there's a lot that can!)
-        /// </remarks>
-        /// <exception cref="OperationCanceledException">If cancellation token is used.</exception>
-        static public async Task DownloadIWYU(string executablePath, DownloadProgressUpdate onProgressUpdate, CancellationToken cancellationToken)
+
+
+        async Task DownloadAsync(string targetZipFile)
         {
-            string targetDirectory = Path.GetDirectoryName(executablePath);
-            Directory.CreateDirectory(targetDirectory);
-            string targetZipFile = Path.Combine(targetDirectory, "download.zip");
-
-            // Delete existing zip file.
-            try
+            using (client = new WebClient())
             {
-                File.Delete(targetZipFile);
-            }
-            catch { }
-
-            // Download.
-            onProgressUpdate("Connecting...", "", -1.0f);
-
-            // In contrast to GetCurrentVersionOnline we're not using HttpClient here since WebClient makes downloading files so much nicer.
-            // (in HttpClient we would need to do the whole buffering + queuing and file writing ourselves)
-            using (var client = new WebClient())
-            {
-                var cancelRegistration = cancellationToken.Register(() =>
-                {
-                    client.CancelAsync();
-                    throw new TaskCanceledException();
-                });
-
                 client.DownloadProgressChanged += (object sender, DownloadProgressChangedEventArgs e) =>
                 {
                     int kbTodo = (int)System.Math.Ceiling((double)e.TotalBytesToReceive / 1024);
                     int kbDownloaded = (int)System.Math.Ceiling((double)e.BytesReceived / 1024);
-                    onProgressUpdate("Downloading", kbTodo > 0 ? $"{kbTodo} / {kbDownloaded} kB" : $"{kbDownloaded} kB", e.ProgressPercentage * 0.01f);
+                    OnProgressEvent("Downloading", kbTodo > 0 ? $"{kbTodo} / {kbDownloaded} kB" : $"{kbDownloaded} kB", e.ProgressPercentage * 0.01f);
                 };
 
                 await client.DownloadFileTaskAsync(DownloadRepositorURL, targetZipFile);
+                client = null;
+            }
+        }
 
-                cancelRegistration.Dispose();
+        /// <summary>
+        /// Downloads iwyu from default download repository.
+        /// </summary>
+        public async Task DownloadIWYUAsync()
+        {
+            string targetDirectory = GetDefaultFolder();
+            Directory.CreateDirectory(targetDirectory);
+            string targetZipFile = Path.Combine(targetDirectory, "download.zip");
+
+            // Download.
+            OnProgressEvent("Connecting...", "", -1.0f);
+
+            try
+            {
+                await DownloadAsync(targetZipFile);
+            }
+            catch (Exception e)
+            {
+                _ = Output.WriteLineAsync("Failed to download IWYU with error:" + e.Message);
+                return;
             }
 
             // Unpacking. Looks like there is no async api, so we're just moving this to a task.
-            onProgressUpdate("Unpacking...", "", -1.0f);
-            await Task.Run(() =>
+            OnProgressEvent("Unpacking...", "", -1.0f);
+
+            try
             {
-                using (var zipArchive = new ZipArchive(File.OpenRead(targetZipFile), ZipArchiveMode.Read))
-                {
-                    // Don't want to have the top level folder if any,
-                    string topLevelFolderName = "";
-
-                    for (int i = 0; i < zipArchive.Entries.Count; ++i)
-                    {
-                        var file = zipArchive.Entries[i];
-
-                        string targetName = file.FullName.Substring(topLevelFolderName.Length);
-                        string completeFileName = Path.Combine(targetDirectory, targetName);
-
-                        // If name is empty it should be a directory.
-                        if (file.Name == "")
-                        {
-                            if (i == 0)    // We assume that if the first thing we encounter is a folder, it is a toplevel one.
-                                topLevelFolderName = file.FullName;
-                            else
-                                Directory.CreateDirectory(Path.GetDirectoryName(completeFileName));
-                        }
-                        else
-                        {
-                            using (var destination = File.Open(completeFileName, FileMode.Create, FileAccess.Write, FileShare.None))
-                            {
-                                using (var stream = file.Open())
-                                    stream.CopyTo(destination);
-                            }
-                        }
-
-                        if (cancellationToken.IsCancellationRequested)
-                            return;
-                    }
-                }
-
-            }, cancellationToken);
+                await Task.Run(() =>
+            {
+                ZipFile.ExtractToDirectory(targetZipFile, GetDefaultFolder());
+            });
+            }
+            catch (Exception e)
+            {
+                _ = Output.WriteLineAsync("Failed to unpack IWYU with error:" + e.Message);
+                return;
+            }
 
             // Save version.
-            onProgressUpdate("Saving Version", "", -1.0f);
-            string version = await GetCurrentVersionOnline();
-            File.WriteAllText(GetVersionFilePath(executablePath), version);
+            OnProgressEvent("Saving Version", "", -1.0f);
+            string version = await GetVersionOnlineAsync();
+            File.WriteAllText(GetVersionFilePath(), version);
+
+            OnProgressEvent("Clean Up", "", -1.0f);
+            File.Delete(targetZipFile);
         }
+        public void Cancel()
+        {
+            client?.CancelAsync();
+        }
+
 
         static public IEnumerable<string> GetMappingFilesNextToIwyuPath(string executablePath)
         {

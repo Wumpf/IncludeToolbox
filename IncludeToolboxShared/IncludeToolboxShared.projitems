@@ -9,6 +9,29 @@
     <Import_RootNamespace>IncludeToolboxShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\FormatIncludes.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\IncludeGraphToolWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\RunIWYU.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\TrialAndErrorRemoval_CodeWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\TrialAndErrorRemoval_Project.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatter\IncludeFormatter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatter\IncludeLineInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IncludeToolboxPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYU.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUDownload.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\Constants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\FormatterOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IncludeWhatYouUseOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\IWYUOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\TrialAndErrorRemovalOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\ViewerOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\Output.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\RegexUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\TrialAndErrorRemoval.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\VCHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\VCUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\VSUtils.cs" />
   </ItemGroup>
 </Project>

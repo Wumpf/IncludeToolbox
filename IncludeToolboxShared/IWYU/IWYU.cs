@@ -1,360 +1,204 @@
-﻿using EnvDTE;
+﻿using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using System;
+using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox.IncludeWhatYouUse
 {
-    /// <summary>
-    /// Command handler for include what you use.
-    /// </summary>
-    static public class IWYU
+    internal class IWYU
     {
-        private static readonly Regex RegexRemoveLine = new Regex(@"^-\s+.+\s+\/\/ lines (\d+)-(\d+)$");
+        Process process = new Process();
+        string output = "";
+        string command_line = "";
+        string support_path = "";
+        string support_cpp_path = "";
 
-        private class FormatTask
+        readonly string match = "The full include-list for ";
+        readonly Regex include = new("#include ([<\"].*[>\"])");
+        readonly Regex include_from_file = new("#include(?:(?:\\/\\*.*\\*\\/)|[^\\S\\r\\n])*([<\\\"].*[>\\\"])");
+        readonly Regex commentary = new("(?:\\/\\*(?:.|\\r|\\n)*?\\*\\/)|(?:\\/\\/.*?\\n)");
+
+
+        public IWYU()
         {
-            public override string ToString()
+            process.EnableRaisingEvents = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+
+            process.OutputDataReceived += (s, args) =>
             {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append("Remove:\n");
-                foreach (int i in linesToRemove)
-                    stringBuilder.AppendFormat("{0},", i);
-                stringBuilder.Append("\nAdd:\n");
-                foreach (string s in linesToAdd)
-                    stringBuilder.AppendFormat("{0}\n", s);
-                return stringBuilder.ToString();
-            }
-
-            public readonly HashSet<int> linesToRemove = new HashSet<int>();
-            public readonly List<string> linesToAdd = new List<string>();
-        };
-
-
-        static private Dictionary<string, FormatTask> ParseOutput(string iwyuOutput)
-        {
-            Dictionary<string, FormatTask> fileTasks = new Dictionary<string, FormatTask>();
-            FormatTask currentTask = null;
-            bool removeCommands = true;
-
-            //- #include <Core/Basics.h>  // lines 3-3
-
-            // Parse what to do.
-            var lines = Regex.Split(iwyuOutput, "\r\n|\r|\n");
-            bool lastLineWasEmpty = false;
-            foreach (string line in lines)
+                output += args.Data + "\n";
+            };
+            process.ErrorDataReceived += (s, args) =>
             {
-                if (line.Length == 0)
-                {
-                    if (lastLineWasEmpty)
-                    {
-                        currentTask = null;
-                    }
-
-                    lastLineWasEmpty = true;
-                    continue;
-                }
-
-                int i = line.IndexOf(" should add these lines:");
-                if (i < 0)
-                {
-                    i = line.IndexOf(" should remove these lines:");
-                    if (i >= 0)
-                        removeCommands = true;
-                }
-                else
-                {
-                    removeCommands = false;
-                }
-
-                if (i >= 0)
-                {
-                    string file = line.Substring(0, i);
-
-                    if (!fileTasks.TryGetValue(file, out currentTask))
-                    {
-                        currentTask = new FormatTask();
-                        fileTasks.Add(file, currentTask);
-                    }
-                }
-                else if (currentTask != null)
-                {
-                    if (removeCommands)
-                    {
-                        var match = RegexRemoveLine.Match(line);
-                        if (match.Success)
-                        {
-                            int removeStart, removeEnd;
-                            if (int.TryParse(match.Groups[1].Value, out removeStart) &&
-                                int.TryParse(match.Groups[2].Value, out removeEnd))
-                            {
-                                for (int lineIdx = removeStart; lineIdx <= removeEnd; ++lineIdx)
-                                    currentTask.linesToRemove.Add(lineIdx - 1);
-                            }
-                        }
-                        else if (lastLineWasEmpty)
-                        {
-                            currentTask = null;
-                        }
-                    }
-                    else
-                    {
-                        if (!string.IsNullOrWhiteSpace(line))
-                        {
-                            currentTask.linesToAdd.Add(line);
-                        }
-                        else if (lastLineWasEmpty)
-                        {
-                            currentTask = null;
-                        }
-                    }
-                }
-
-                lastLineWasEmpty = false;
-            }
-
-            return fileTasks;
+                output += args.Data + "\n";
+            };
         }
 
-        static private async Task ApplyTasks(Dictionary<string, FormatTask> tasks, bool applyFormatting, FormatterOptionsPage formatSettings)
+        public void BuildCommandLine(IWYUOptions settings)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            process.StartInfo.FileName = settings.Executable;
 
-            var dte = VSUtils.GetDTE();
+            List<string> args = new List<string>();
 
-            foreach (KeyValuePair<string, FormatTask> entry in tasks)
+            switch (settings.Comms)
             {
-                string filename = entry.Key.Replace('/', '\\'); // Classy. But Necessary.
-                EnvDTE.Window fileWindow = dte.ItemOperations.OpenFile(filename);
-                if (fileWindow == null)
-                {
-                    await Output.Instance.ErrorMsg("Failed to open File {0}", filename);
-                    continue;
-                }
-                fileWindow.Activate();
-
-                var viewHost = VSUtils.GetCurrentTextViewHost();
-                using (var edit = viewHost.TextView.TextBuffer.CreateEdit())
-                {
-                    var originalLines = edit.Snapshot.Lines.ToArray();
-
-                    // Determine which line ending to use by majority.
-                    string lineEndingToBeUsed = Utils.GetDominantNewLineSeparator(edit.Snapshot.GetText());
-
-                    // Add lines.
-                    {
-                        // Find last include.
-                        // Will find even if commented out, but we don't care.
-                        int lastIncludeLine = -1;
-                        for (int line = originalLines.Length - 1; line >= 0; --line)
-                        {
-                            if (originalLines[line].GetText().Contains("#include"))
-                            {
-                                lastIncludeLine = line;
-                                break;
-                            }
-                        }
-
-                        // Build replacement string
-                        StringBuilder stringToInsertBuilder = new StringBuilder();
-                        foreach (string lineToAdd in entry.Value.linesToAdd)
-                        {
-                            stringToInsertBuilder.Append(lineToAdd);
-                            stringToInsertBuilder.Append(lineEndingToBeUsed);
-                        }
-                        string stringToInsert = stringToInsertBuilder.ToString();
-
-
-                        // optional, format before adding.
-                        if (applyFormatting)
-                        {
-                            var includeDirectories = VSUtils.GetProjectIncludeDirectories(fileWindow.Document.ProjectItem?.ContainingProject);
-                            stringToInsert = Formatter.IncludeFormatter.FormatIncludes(stringToInsert, fileWindow.Document.FullName, includeDirectories, formatSettings);
-
-                            // Add a newline if we removed it.
-                            if (formatSettings.RemoveEmptyLines)
-                                stringToInsert += lineEndingToBeUsed;
-                        }
-
-                        // Insert.
-                        int insertPosition = 0;
-                        if (lastIncludeLine >= 0 && lastIncludeLine < originalLines.Length)
-                        {
-                            insertPosition = originalLines[lastIncludeLine].EndIncludingLineBreak;
-                        }
-                        edit.Insert(insertPosition, stringToInsert.ToString());
-                    }
-
-                    // Remove lines.
-                    // It should safe to do that last since we added includes at the bottom, this way there is no confusion with the text snapshot.
-                    {
-                        foreach (int lineToRemove in entry.Value.linesToRemove.Reverse())
-                        {
-                            if (!Formatter.IncludeLineInfo.ContainsPreserveFlag(originalLines[lineToRemove].GetText()))
-                                edit.Delete(originalLines[lineToRemove].ExtentIncludingLineBreak);
-                        }
-                    }
-
-                    edit.Apply();
-                }
-
-                // For Debugging:
-                //Output.Instance.WriteLine("");
-                //Output.Instance.WriteLine(entry.Key);
-                //Output.Instance.WriteLine(entry.Value.ToString());
+                case Comment.Always: args.Add("--update_comments"); break;
+                case Comment.Never: args.Add("--no_comments"); break;
+                case Comment.Default: break;
             }
-        }
+            args.Add(string.Format("--verbose={0}", settings.Verbosity));
 
-        static public async Task Apply(string iwyuOutput, bool applyFormatter, FormatterOptionsPage formatOptions)
-        {
-            var tasks = ParseOutput(iwyuOutput);
-            await ApplyTasks(tasks, applyFormatter, formatOptions);
+            if (settings.Precompiled || settings.IgnoreHeader)
+                args.Add("--pch_in_code");
+            if (settings.Transitives)
+                args.Add("--transitive_includes_only");
+            if (settings.NoDefault)
+                args.Add("--no_default_mappings");
+            if (settings.MappingFile != "")
+                args.Add(string.Format("--mapping_file=\"{0}\"", settings.MappingFile));
+            args.Add("--max_line_length=256"); // output line for commentaries
+
+            command_line =
+                string.Join(" ", args.Select(x => " -Xiwyu " + x));
+
+            if (!settings.Warnings)
+                command_line += " -w";
+
+            command_line += " -Wno-invalid-token-paste -fms-compatibility -fms-extensions -fdelayed-template-parsing";
+            if (settings.ClangOptions != null && settings.ClangOptions?.Count() != 0)
+                command_line += " " + string.Join(" ", settings.ClangOptions);
+            if (settings.Options != null && settings.Options.Count() != 0)
+                command_line += " " + string.Join(" ", settings.Options.Select(x => " -Xiwyu " + x));
+            settings.ClearFlag();
         }
 
         /// <summary>
-        /// Runs iwyu. Blocks until finished.
+        /// Heavy function for include detection. 
+        /// Inlcude may be inside the commentary or between multiline comms, 
+        /// so the detection should be correctly defined.
+        /// Still Does not count for prepro
         /// </summary>
-        static public async Task<string> RunIncludeWhatYouUse(string fullFileName, EnvDTE.Project project, IncludeWhatYouUseOptionsPage settings)
+        /// <param name="snap"></param>
+        /// <returns>Dictionary of valid includes</returns>
+        Dictionary<string, List<Span>> ParseIncludes(ITextSnapshot snap, out int first_pos)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            first_pos = 0;
+            var text = snap.GetText();
+            int begin = text.IndexOf("#include");
+            int end = text.LastIndexOf("#include");
+            text = text.Substring(begin, end - begin); //optimized
 
-            string preprocessorDefintions;
-            try
+            // Get all commentary spans
+            var comms = commentary.Matches(text).Cast<Match>().Select(s =>
+            { var a = s.Captures[0]; return new Span(a.Index, a.Length); });
+
+            // gather all the includes, that are not commented!
+            var includes = include_from_file.Matches(text).Cast<Match>()
+                .Where(s => !comms.Any(sp => sp.Contains(s.Captures[0].Index)))
+                .Select(s =>
+                {
+                    var a = s.Groups[0];
+                    return new KeyValuePair<string, Span>(s.Groups[1].Value, new Span(a.Index, a.Length));
+                });
+
+            if (includes.Count() != 0)
+                first_pos = includes.First().Value.Start;
+
+            var dict = new Dictionary<string, List<Span>>();
+            foreach (var inc in includes)
             {
-                preprocessorDefintions = VSUtils.VCUtils.GetCompilerSetting_PreprocessorDefinitions(project);
-            }
-            catch (VCQueryFailure e)
-            {
-                await Output.Instance.ErrorMsg("Can't run IWYU: {0}", e.Message);
-                return null;
-            }
-
-            string output = "";
-            using (var process = new System.Diagnostics.Process())
-            {
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.StartInfo.FileName = settings.ExecutablePath;
-
-                // Clang options
-                var clangOptionList = new List<string>();
-                // Disable all diagnostics
-                clangOptionList.Add("-w");
-                // ... despite of that "invalid token paste" comes through a lot. Disable it.
-                clangOptionList.Add("-Wno-invalid-token-paste");
-                // MSVC specific. See https://clang.llvm.org/docs/UsersManual.html#microsoft-extensions
-                clangOptionList.Add("-fms-compatibility -fms-extensions -fdelayed-template-parsing");
-
-                // icwyu options
-                var iwyuOptionList = new List<string>();
-                iwyuOptionList.Add("--verbose=" + settings.LogVerbosity);
-                for (int i = 0; i < settings.MappingFiles.Length; ++i)
-                    iwyuOptionList.Add("--mapping_file=\"" + settings.MappingFiles[i] + "\"");
-                if (settings.NoDefaultMappings)
-                    iwyuOptionList.Add("--no_default_mappings");
-                if (settings.PCHInCode)
-                    iwyuOptionList.Add("--pch_in_code");
-                switch (settings.PrefixHeaderIncludes)
-                {
-                    case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Add:
-                        iwyuOptionList.Add("--prefix_header_includes=add");
-                        break;
-                    case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Remove:
-                        iwyuOptionList.Add("--prefix_header_includes=remove");
-                        break;
-                    case IncludeWhatYouUseOptionsPage.PrefixHeaderMode.Keep:
-                        iwyuOptionList.Add("--prefix_header_includes=keep");
-                        break;
-                }
-                if (settings.TransitiveIncludesOnly)
-                    iwyuOptionList.Add("--transitive_includes_only");
-
-                
-
-                // Set max line length so something large so we don't loose comment information.
-                // Documentation:
-                // --max_line_length: maximum line length for includes. Note that this only affects comments and alignment thereof,
-                // the maximum line length can still be exceeded with long file names(default: 80).
-                iwyuOptionList.Add("--max_line_length=1024");
-
-                /// write support file with includes, defines and the targetgile. Long argument lists lead to an error. Support files are the solution here.
-                /// https://github.com/Wumpf/IncludeToolbox/issues/36                
-                // Include-paths and Preprocessor.
-                var includes = string.Join(" ", VSUtils.GetProjectIncludeDirectories(project, false).Select(x => "-I \"" + x.Replace("\\", "\\\\") + "\""));
-                var defines = preprocessorDefintions.Length == 0 ? "" : string.Join(" ", preprocessorDefintions.Split(';').Select(x => "-D" + x));
-                var filename = "\"" + fullFileName.Replace("\\", "\\\\") + "\"";
-
-                var iwyuOptions = string.Join(" ", iwyuOptionList.Select(x => " -Xiwyu " + x));
-
-                var ext = Path.GetExtension(fullFileName);
-
-                string co = "";
-                switch (settings.Commentary)
-                {
-                    case Commentaries.Always: co = (" -Xiwyu --update_comments"); break;
-                    case Commentaries.Never: co = (" -Xiwyu --no_comments"); break;
-                    case Commentaries.Default: break;
-                }
-
-                iwyuOptions += co;
-
-                if (ext == ".h" || ext == ".hpp")
-                {
-                    var tmp_cpp = Path.GetTempFileName();
-                    tmp_cpp = Path.ChangeExtension(tmp_cpp, ".cpp");
-                    File.WriteAllText(tmp_cpp, "#include \"" + fullFileName + "\"");
-                    iwyuOptions += " -Xiwyu --check_also=" + filename;
-                    filename = "\"" + tmp_cpp.Replace("\\", "\\\\") + "\"";
-                }
-                else if (settings.HeaderPrefix != "" && Directory.Exists(Path.GetDirectoryName(fullFileName) + settings.HeaderPrefix))
-                {
-                    var correspond_h = settings.HeaderPrefix + '\\' + Path.GetFileNameWithoutExtension(fullFileName) + ".h";
-                    var correspond_hpp = Path.ChangeExtension(correspond_h, ".hpp");
-                    if (!File.Exists(correspond_h))
-                        iwyuOptions += " -Xiwyu --check_also=" + "\"" + correspond_h.Replace("\\", "\\\\") + "\"";
-                    else if (!File.Exists(correspond_hpp))
-                        iwyuOptions += " -Xiwyu --check_also=" + "\"" + correspond_hpp.Replace("\\", "\\\\") + "\"";
-                }
-
-                var supportFilePath = Path.GetTempFileName();
-                File.WriteAllText(supportFilePath, includes + " " + defines + " " + filename);
-
-                var clangOptions = string.Join(" ", clangOptionList);
-                // each include-what-you-use parameter has an -Xiwyu prefix
-                process.StartInfo.Arguments = $"{clangOptions} {iwyuOptions} {settings.AdditionalParameters} \"@{supportFilePath}\"";
-
-                Output.Instance.Write("Running command '{0}' with following arguments:\n{1}\n\n", process.StartInfo.FileName, process.StartInfo.Arguments);
-
-                // Start the child process.
-                process.EnableRaisingEvents = true;
-                process.OutputDataReceived += (s, args) =>
-                {
-                    Output.Instance.WriteLine(args.Data);
-                    output += args.Data + "\n";
-                };
-                process.ErrorDataReceived += (s, args) =>
-                {
-                    Output.Instance.WriteLine(args.Data);
-                    output += args.Data + "\n";
-                };
-                process.Start();
-
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                process.WaitForExit();
-                process.CancelOutputRead();
-                process.CancelErrorRead();
+                if (!dict.ContainsKey(inc.Key))
+                    dict[inc.Key] = new List<Span>();
+                dict[inc.Key].Add(inc.Value);
             }
 
-            return output;
+            return dict;
+        }
+        public async Task ApplyAsync()
+        {
+            if (output == "") return;
+
+            while (true)
+            {
+                int pos = output.IndexOf(match);
+                if (pos == -1) return;
+
+                var tasks = output.Substring(0, pos)
+                    .Split('\n').Select(l => l.Trim());
+
+                pos = pos + match.Length;
+                string part = output.Substring(pos);
+                string path = part.Substring(0, part.IndexOf(':', 3));
+                var doc = await VS.Documents.OpenAsync(path);
+                var edit = doc.TextBuffer.CreateEdit();
+
+                var dict = ParseIncludes(doc.TextBuffer.CurrentSnapshot, out int start);
+
+
+                foreach (var task in tasks)
+                {
+                    if (task.StartsWith("- #include"))
+                    {
+                        var rem = include.Match(task).Groups[1].Value;
+                        edit.Delete(dict[rem].First());
+                        dict[rem].RemoveAt(0);
+                    }
+                    if (task.StartsWith("#include"))
+                    {
+                        edit.Insert(start, task);
+                    }
+                }
+                edit.Apply();
+                output = part.Substring(part.IndexOf("---"));
+            }
+        }
+
+        public async Task<bool> StartAsync(string file, bool rebuild)
+        {
+            output = "";
+            var cmd = await VCUtil.GetCommandLineAsync(rebuild);
+            if (cmd == null) return false;
+            if (cmd != "")
+            {
+                // cache file for reuse
+                support_path = string.IsNullOrEmpty(support_path) ? Path.GetTempFileName() : support_path;
+                File.WriteAllText(support_path, cmd);
+            }
+            var ext = Path.GetExtension(file);
+            if (ext == ".h" || ext == ".hpp")
+            {
+                if (support_cpp_path == "") { support_cpp_path = Path.ChangeExtension(Path.GetTempFileName(), ".cpp"); }
+                File.WriteAllText(support_cpp_path, "#include \"" + file + "\"");
+                file = " -Xiwyu --check_also=" + file;
+                file += " \"" + support_cpp_path.Replace("\\", "\\\\") + "\"";
+            }
+            process.StartInfo.Arguments = $"{command_line} \"@{support_path}\" {file}";
+
+            Output.WriteLineAsync(string.Format("Running command '{0}' with following arguments:\n{1}\n\n", process.StartInfo.FileName, process.StartInfo.Arguments)).FireAndForget();
+
+            process.Start();
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();
+            process.CancelOutputRead();
+            process.CancelErrorRead();
+
+            Output.WriteLineAsync(output).FireAndForget();
+            return true;
+        }
+        public async Task CancelAsync()
+        {
+            await Task.Run(delegate { process.Kill(); });
         }
     }
 }

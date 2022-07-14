@@ -47,9 +47,10 @@
 		</Menus>
 
 		<Groups>
-			<Group guid="guidCodeMenuCmdSet" id="EditMenuGroup" priority="0x0600">
+			<Group guid="guidCodeMenuCmdSet" id="ContextMenuGroup" priority="0x0600">
 				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
 			</Group>
+			
 			<Group guid="guidIncludeGraphWindowCmdSet" id="IncludeGraphToolWindowGroup" priority="0x8000"/>
 			<Group guid="guidProjectMenuCmdSet" id="ProjectMenuGroup" priority="0x8000"/>
 
@@ -62,28 +63,19 @@
 			</Group>
 		</Groups>
 
-		<!--Buttons section. -->
-		<!--This section defines the elements the user can interact with, like a menu command or a button
-        or combo box in a toolbar. -->
-		<Buttons>
-			<!--To define a menu group you have to specify its ID, the parent menu and its display priority.
-          The command is visible and enabled by default. If you need to change the visibility, status, etc, you can use
-          the CommandFlag node.
-          You can add more than one CommandFlag node e.g.:
-              <CommandFlag>DefaultInvisible</CommandFlag>
-              <CommandFlag>DynamicVisibility</CommandFlag>
-          If you do not want an image next to your command, remove the Icon node /> -->
 
+		<Buttons>
 			<Button guid="guidCodeMenuCmdSet" id="FormatIncludesId" priority="0x0100" type="Button">
-				<Parent guid="guidCodeMenuCmdSet" id="EditMenuGroup" />
+				<Parent guid="guidCodeMenuCmdSet" id="ContextMenuGroup" />
 				<Icon guid="guidIconsCommon" id="iconFormatter" />
 				<CommandFlag>DynamicVisibility</CommandFlag>
 				<Strings>
 					<ButtonText>Format Selected Includes</ButtonText>
 				</Strings>
 			</Button>
+			
 			<Button guid="guidCodeMenuCmdSet" id="IncludeWhatYouUseId" priority="0x0101" type="Button">
-				<Parent guid="guidCodeMenuCmdSet" id="EditMenuGroup" />
+				<Parent guid="guidCodeMenuCmdSet" id="ContextMenuGroup" />
 				<Icon guid="guidIconsCommon" id="iconIWYU" />
 				<CommandFlag>DynamicVisibility</CommandFlag>
 				<Strings>
@@ -92,7 +84,7 @@
 			</Button>
 
 			<Button guid="guidCodeMenuCmdSet" id="TrialAndErrorRemovalId" priority="0x0102" type="Button">
-				<Parent guid="guidCodeMenuCmdSet" id="EditMenuGroup" />
+				<Parent guid="guidCodeMenuCmdSet" id="ContextMenuGroup" />
 				<Icon guid="guidIconsCommon" id="iconTrialAndError" />
 				<CommandFlag>DynamicVisibility</CommandFlag>
 				<Strings>
@@ -161,15 +153,20 @@
 		</Bitmaps>
 	</Commands>
 
+	<VisibilityConstraints>
+		<VisibilityItem guid="guidCodeMenuCmdSet" id="GenMap" context="GHeaderOnly"/>
+		<VisibilityItem guid="guidCodeMenuCmdSet" id="IncludeWhatYouUseId" context="GOnlyVC"/>
+	</VisibilityConstraints>
+
 	<Symbols>
 		<!-- This is the package guid. -->
 		<GuidSymbol name="guidIncludeToolboxPackage" value="{5c2743c4-1b3f-4edd-b6a0-4379f867d47f}" />
 
 		<GuidSymbol name="guidCodeMenuCmdSet" value="{aef3a531-8af4-4b7b-800a-e32503dfc6e2}">
-			<IDSymbol name="EditMenuGroup" value="0x1020" />
-			<IDSymbol name="FormatIncludesId" value="0x0100" />
-			<IDSymbol name="IncludeWhatYouUseId" value="0x0103" />
-			<IDSymbol name="TrialAndErrorRemovalId" value="0x0104" />
+			<IDSymbol name="ContextMenuGroup" value="0x0001" />
+			<IDSymbol name="FormatIncludesId" value="0x0010" />
+			<IDSymbol name="IncludeWhatYouUseId" value="0x0011" />
+			<IDSymbol name="TrialAndErrorRemovalId" value="0x0012" />
 		</GuidSymbol>
 
 		<GuidSymbol name="guidIncludeGraphWindowCmdSet" value="{032eb795-1f1c-440d-af98-43cdc1de7a8b}">
@@ -206,5 +203,10 @@
 			<IDSymbol name="iconTrialAndError" value="3" />
 			<IDSymbol name="iconExplorer" value="4" />
 		</GuidSymbol>
+
+		<!-- Visibility Constraints -->
+		<GuidSymbol name="GHeaderOnly" value="{a34e853e-8679-4a07-918e-982a1b3b0a6b}"/>
+		<GuidSymbol name="GOnlyVC" value="{1175290a-3e8f-4718-868c-c08b5d2b09a7}"/>
+		
 	</Symbols>
 </CommandTable>
