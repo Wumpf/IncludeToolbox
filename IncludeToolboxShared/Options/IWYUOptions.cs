@@ -8,7 +8,7 @@ namespace IncludeToolbox
     internal partial class OptionsProvider
     {
         [ComVisible(true)]
-        public class XIWYUOptions : BaseOptionPage<IWYUOptions> { }
+        public class IWYUOptionsPage : BaseOptionPage<IWYUOptions> { }
     }
 
     public class IWYUOptions : BaseOptionModel<IWYUOptions>

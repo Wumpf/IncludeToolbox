@@ -74,17 +74,5 @@ namespace IncludeToolbox
 
             return lineEndingToBeUsed;
         }
-
-        /// <summary>
-        /// Prepending a single Item to an to an IEnumerable.
-        /// </summary>
-        public static IEnumerable<T> Prepend<T>(this IEnumerable<T> seq, T val)
-        {
-            yield return val;
-            foreach (T t in seq)
-            {
-                yield return t;
-            }
-        }
     }
 }

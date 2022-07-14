@@ -68,8 +68,8 @@ namespace Tests
 ";
 
 
-            var settings = new IncludeToolbox.FormatterOptionsPage();
-            settings.SortByType = IncludeToolbox.FormatterOptionsPage.TypeSorting.None;
+            var settings = new IncludeToolbox.FormatOptions();
+            settings.SortByType = IncludeToolbox.TypeSorting.None;
             settings.PrecedenceRegexes = new string[]
                 {
                     IncludeToolbox.RegexUtils.CurrentFileNameKey,
@@ -118,8 +118,8 @@ namespace Tests
 ";
 
 
-            var settings = new IncludeToolbox.FormatterOptionsPage();
-            settings.SortByType = IncludeToolbox.FormatterOptionsPage.TypeSorting.AngleBracketsFirst;
+            var settings = new IncludeToolbox.FormatOptions();
+            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
             settings.PrecedenceRegexes = new string[]
             {
                     IncludeToolbox.RegexUtils.CurrentFileNameKey,
@@ -166,8 +166,8 @@ namespace Tests
 #include ""z_first""";
 
 
-            var settings = new IncludeToolbox.FormatterOptionsPage();
-            settings.SortByType = IncludeToolbox.FormatterOptionsPage.TypeSorting.None;
+            var settings = new IncludeToolbox.FormatOptions();
+            settings.SortByType = IncludeToolbox.TypeSorting.None;
             settings.PrecedenceRegexes = new string[]
             {
                     IncludeToolbox.RegexUtils.CurrentFileNameKey,
@@ -193,8 +193,8 @@ namespace Tests
 #include ""z_first""
 // A comment";
 
-            var settings = new IncludeToolbox.FormatterOptionsPage();
-            settings.SortByType = IncludeToolbox.FormatterOptionsPage.TypeSorting.None;
+            var settings = new IncludeToolbox.FormatOptions();
+            settings.SortByType = IncludeToolbox.TypeSorting.None;
             settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
             settings.BlankAfterRegexGroupMatch = false;
             settings.RemoveEmptyLines = true;
@@ -207,13 +207,13 @@ namespace Tests
         public void EmptySelection()
         {
             // Activate all features
-            var settings = new IncludeToolbox.FormatterOptionsPage();
-            settings.SortByType = IncludeToolbox.FormatterOptionsPage.TypeSorting.AngleBracketsFirst;
+            var settings = new IncludeToolbox.FormatOptions();
+            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
             settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
             settings.BlankAfterRegexGroupMatch = true;
             settings.RemoveEmptyLines = true;
-            settings.DelimiterFormatting = IncludeToolbox.FormatterOptionsPage.DelimiterMode.AngleBrackets;
-            settings.SlashFormatting = IncludeToolbox.FormatterOptionsPage.SlashMode.BackSlash;
+            settings.DelimiterFormatting = IncludeToolbox.DelimiterMode.AngleBrackets;
+            settings.SlashFormatting = IncludeToolbox.SlashMode.BackSlash;
 
             string formatedCode = IncludeFormatter.FormatIncludes("", "filename.cpp", new string[] { }, settings);
             Assert.AreEqual("", formatedCode);
@@ -272,8 +272,8 @@ namespace Tests
 #include <a1>
 #include <b>";
 
-            var settings = new IncludeToolbox.FormatterOptionsPage();
-            settings.SortByType = IncludeToolbox.FormatterOptionsPage.TypeSorting.AngleBracketsFirst;
+            var settings = new IncludeToolbox.FormatOptions();
+            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
             settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
             settings.BlankAfterRegexGroupMatch = false;
             settings.RemoveEmptyLines = false;

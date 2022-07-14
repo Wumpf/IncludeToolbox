@@ -157,6 +157,10 @@
 		<!--<VisibilityItem guid="guidCodeMenuCmdSet" id="GenMap" context="GHeaderOnly"/>-->
 		<VisibilityItem guid="guidCodeMenuCmdSet" id="IncludeWhatYouUseId" context="GOnlyVC"/>
 	</VisibilityConstraints>
+	<KeyBindings>
+		<KeyBinding guid="guidCodeMenuCmdSet" id="IncludeWhatYouUseId" key1="K" key2="I" mod1="CONTROL" editor="guidVSStd97"/>
+		<KeyBinding guid="guidCodeMenuCmdSet" id="FormatIncludesId" key1="K" key2="F" mod1="CONTROL" editor="guidVSStd97"/>
+	</KeyBindings>
 
 	<Symbols>
 		<!-- This is the package guid. -->

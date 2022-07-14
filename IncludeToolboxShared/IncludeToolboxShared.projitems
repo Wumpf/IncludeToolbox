@@ -19,12 +19,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)IncludeToolboxPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYU.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUDownload.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\FormatterOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\IncludeWhatYouUseOptionsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IWYUOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\OptionsPage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\TrialAndErrorRemovalOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\TrialAndErrorRemovalOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ViewerOptionsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Output.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\RegexUtils.cs" />

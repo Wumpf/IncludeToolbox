@@ -8,7 +8,7 @@ namespace IncludeToolbox
     internal partial class OptionsProvider
     {
         [ComVisible(true)]
-        public class FormatterOptions : BaseOptionPage<FormatOptions> { }
+        public class FormatterOptionsPage : BaseOptionPage<FormatOptions> { }
     }
 
     public class FormatOptions : BaseOptionModel<FormatOptions>
