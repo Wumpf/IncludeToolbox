@@ -33,7 +33,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
         }
 
         public delegate void OnChangeDelegate(string Section, string Status, float percent);
-        
+
 
 
         public event OnChangeDelegate OnProgress;
@@ -139,10 +139,18 @@ namespace IncludeToolbox.IncludeWhatYouUse
 
             try
             {
-                await Task.Run(() =>
-            {
-                ZipFile.ExtractToDirectory(targetZipFile, GetDefaultFolder());
-            });
+                using (ZipArchive archive = ZipFile.OpenRead(targetZipFile))
+                {
+                    foreach (ZipArchiveEntry entry in archive.Entries.Where(e =>
+                    {
+                        if (e.Name == "LICENSE") return true;
+                        string a = Path.GetExtension(e.FullName);
+                        return a == ".exe" || a == ".txt" || a == ".imp" || a == ".md";
+                    }))
+                    {
+                        entry.ExtractToFile(Path.Combine(GetDefaultFolder(), entry.Name));
+                    }
+                }
             }
             catch (Exception e)
             {

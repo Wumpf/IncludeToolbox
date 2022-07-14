@@ -35,14 +35,10 @@ namespace IncludeToolbox.Commands
         IWYU proc = new();
         CancelCallback cancelCallback;
 
-        public RunIWYU()
-        {
-            cancelCallback = new(delegate { proc.CancelAsync().FireAndForget(); });
-        }
 
         protected override async Task InitializeCompletedAsync()
         {
-            Command.Supported = false;
+            cancelCallback = new(delegate { proc.CancelAsync().FireAndForget(); });
             var settings = await IWYUOptions.GetLiveInstanceAsync();
             if (settings.Executable == IWYUDownload.GetDefaultExecutablePath())
                 download_required = await IWYUDownload.IsNewerVersionAvailableOnlineAsync();
@@ -69,7 +65,7 @@ namespace IncludeToolbox.Commands
                     szStatusBarText: $"Downloading include-what-you-use - {section} - {status}",
                     iCurrentStep: (int)(percentage * 100),
                     iTotalSteps: 100,
-                    fDisableCancel: true,
+                    fDisableCancel: false,
                     pfCanceled: out bool canceled);
                 };
 

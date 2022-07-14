@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<Extern href="stdidcmd.h"/>
+	<Extern href="vsshlids.h"/>
+	<Include href="KnownImageIds.vsct"/>
+	<Include href="VSGlobals.vsct"/>
+	<Include href="MyImageIds.vsct"/>
+
+	<Commands package="IncludeToolbox2022">
+		<Groups>
+			<Group guid="IncludeToolbox2022" id="ContextMenuGroup" priority="0x0603">
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+			</Group>
+		</Groups>
+
+		<!--This section defines the elements the user can interact with, like a menu command or a button
+		or combo box in a toolbar. -->
+		<Buttons>
+			<Button guid="IncludeToolbox2022" id="IncludeWhatYouUseId" priority="0x0100" type="Button">
+				<Parent guid="IncludeToolbox2022" id="ContextMenuGroup" />
+				<Icon guid="MonikersGuid" id="hash" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<Strings>
+					<ButtonText>Run Include-What-You-Use</ButtonText>
+					<LocCanonicalName>.IncludeToolbox2022.IncludeWhatYouUseId</LocCanonicalName>
+				</Strings>
+			</Button>
+			<Button guid="IncludeToolbox2022" id="FormatIncludesId" priority="0x0101" type="Button">
+				<Parent guid="IncludeToolbox2022" id="ContextMenuGroup" />
+				<Icon guid="MonikersGuid" id="IncludeFormatterIcons_0" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<Strings>
+					<ButtonText>Format Includes</ButtonText>
+					<LocCanonicalName>.IncludeToolbox2022.FormatIncludesId</LocCanonicalName>
+				</Strings>
+			</Button>
+		</Buttons>
+	</Commands>
+
+	<VisibilityConstraints>
+		<!--<VisibilityItem guid="guidCodeMenuCmdSet" id="GenMap" context="GHeaderOnly"/>-->
+		<VisibilityItem guid="IncludeToolbox2022" id="IncludeWhatYouUseId" context="GOnlyVC"/>
+	</VisibilityConstraints>
+	<KeyBindings>
+		<KeyBinding guid="IncludeToolbox2022" id="IncludeWhatYouUseId" key1="K" key2="I" mod1="CONTROL" editor="guidVSStd97"/>
+		<KeyBinding guid="IncludeToolbox2022" id="FormatIncludesId" key1="K" key2="F" mod1="CONTROL" editor="guidVSStd97"/>
+	</KeyBindings>
+
+	<Symbols>
+		<GuidSymbol name="IncludeToolbox2022" value="{2e77f2e4-5f04-4052-8e63-ca2b41cd0315}">
+			<IDSymbol name="ContextMenuGroup" value="0x0001" />
+			<IDSymbol name="IncludeWhatYouUseId" value="0x0100" />
+			<IDSymbol name="FormatIncludesId" value="0x0101" />
+		</GuidSymbol>
+
+		<!-- Visibility Constraints -->
+		<GuidSymbol name="GHeaderOnly" value="{a34e853e-8679-4a07-918e-982a1b3b0a6b}"/>
+		<GuidSymbol name="GOnlyVC" value="{1175290a-3e8f-4718-868c-c08b5d2b09a7}"/>
+	</Symbols>
+</CommandTable>

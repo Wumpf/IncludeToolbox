@@ -26,7 +26,7 @@ namespace IncludeToolbox
                 rootUri = new Uri(absoluteRoot);
                 targetUri = new Uri(absoluteTarget);
             }
-            catch(UriFormatException)
+            catch (UriFormatException)
             {
                 return absoluteTarget;
             }

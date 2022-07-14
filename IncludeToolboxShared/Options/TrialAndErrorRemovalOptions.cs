@@ -7,7 +7,7 @@ namespace IncludeToolbox
     internal partial class OptionsProvider
     {
         [ComVisible(true)]
-        public class TrialAndErrorRemovalOptions : BaseOptionPage<IncludeToolbox.TrialAndErrorRemovalOptions> { }
+        public class TrialAndErrorRemovalOptionsPage : BaseOptionPage<TrialAndErrorRemovalOptions> { }
     }
 
     public class TrialAndErrorRemovalOptions : BaseOptionModel<TrialAndErrorRemovalOptions>

@@ -12,15 +12,22 @@ namespace IncludeToolbox
     /// </summary>
     internal sealed partial class PackageGuids
     {
-        public const string VSIXProject1String = "1296bf3f-d351-4b2e-9f71-a3ed2874cdb5";
-        public static Guid VSIXProject1 = new Guid(VSIXProject1String);
+        public const string IncludeToolbox2022String = "2e77f2e4-5f04-4052-8e63-ca2b41cd0315";
+        public static Guid IncludeToolbox2022 = new Guid(IncludeToolbox2022String);
+
+        public const string GHeaderOnlyString = "a34e853e-8679-4a07-918e-982a1b3b0a6b";
+        public static Guid GHeaderOnly = new Guid(GHeaderOnlyString);
+
+        public const string GOnlyVCString = "1175290a-3e8f-4718-868c-c08b5d2b09a7";
+        public static Guid GOnlyVC = new Guid(GOnlyVCString);
     }
     /// <summary>
     /// Helper class that encapsulates all CommandIDs uses across VS Package.
     /// </summary>
     internal sealed partial class PackageIds
     {
-        public const int MyMenuGroup = 0x0001;
-        public const int MyCommand = 0x0100;
+        public const int ContextMenuGroup = 0x0001;
+        public const int IncludeWhatYouUseId = 0x0100;
+        public const int FormatIncludesId = 0x0101;
     }
 }

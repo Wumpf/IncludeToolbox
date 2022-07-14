@@ -47,7 +47,7 @@
 		</Menus>
 
 		<Groups>
-			<Group guid="guidCodeMenuCmdSet" id="ContextMenuGroup" priority="0x0600">
+			<Group guid="guidCodeMenuCmdSet" id="ContextMenuGroup" priority="0x0603">
 				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
 			</Group>
 			

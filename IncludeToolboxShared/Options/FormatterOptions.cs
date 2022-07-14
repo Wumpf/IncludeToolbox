@@ -56,7 +56,8 @@ namespace IncludeToolbox
         [Category("Sorting")]
         [DisplayName("Precedence Regexes")]
         [Description("Earlier match means higher sorting priority.\n\"" + RegexUtils.CurrentFileNameKey + "\" will be replaced with the current file name without extension.")]
-        public string[] PrecedenceRegexes {
+        public string[] PrecedenceRegexes
+        {
             get { return precedenceRegexes; }
             set { precedenceRegexes = value.Where(x => x.Length > 0).ToArray(); } // Remove empty lines.
         }

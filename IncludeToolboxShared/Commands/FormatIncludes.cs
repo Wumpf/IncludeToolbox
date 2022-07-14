@@ -11,7 +11,7 @@ using Task = System.Threading.Tasks.Task;
 namespace IncludeToolbox.Commands
 {
     [Command(PackageIds.FormatIncludesId)]
-    internal sealed class FormatIncludes : BaseCommand<RunIWYU>
+    internal sealed class FormatIncludes : BaseCommand<FormatIncludes>
     {
         SnapshotSpan GetSelectionLines(IWpfTextView viewHost)
         {
