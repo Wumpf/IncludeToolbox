@@ -8,9 +8,9 @@ namespace IncludeToolbox.Formatter
 {
     public static class IncludeFormatter
     {
-        public static string FormatPath(string absoluteIncludeFilename, FormatterOptionsPage.PathMode pathformat, IEnumerable<string> includeDirectories)
+        public static string FormatPath(string absoluteIncludeFilename, PathMode pathformat, IEnumerable<string> includeDirectories)
         {
-            if (pathformat == FormatterOptionsPage.PathMode.Absolute)
+            if (pathformat == PathMode.Absolute)
             {
                 return absoluteIncludeFilename;
             }
@@ -28,7 +28,7 @@ namespace IncludeToolbox.Formatter
 
                         if (proposal.Length < bestLength)
                         {
-                            if (pathformat == FormatterOptionsPage.PathMode.Shortest ||
+                            if (pathformat == PathMode.Shortest ||
                                 (proposal.IndexOf("../") < 0 && proposal.IndexOf("..\\") < 0))
                             {
                                 bestCandidate = proposal;
@@ -47,9 +47,9 @@ namespace IncludeToolbox.Formatter
         /// <summary>
         /// Formats the paths of a given list of include line info.
         /// </summary>
-        private static void FormatPaths(IEnumerable<IncludeLineInfo> lines, FormatterOptionsPage.PathMode pathformat, IEnumerable<string> includeDirectories)
+        private static void FormatPaths(IEnumerable<IncludeLineInfo> lines, PathMode pathformat, IEnumerable<string> includeDirectories)
         {
-            if (pathformat == FormatterOptionsPage.PathMode.Unchanged)
+            if (pathformat == PathMode.Unchanged)
                 return;
 
             foreach (var line in lines)
@@ -60,37 +60,37 @@ namespace IncludeToolbox.Formatter
             }
         }
 
-        private static void FormatDelimiters(IEnumerable<IncludeLineInfo> lines, FormatterOptionsPage.DelimiterMode delimiterMode)
+        private static void FormatDelimiters(IEnumerable<IncludeLineInfo> lines, DelimiterMode delimiterMode)
         {
             switch (delimiterMode)
             {
-                case FormatterOptionsPage.DelimiterMode.AngleBrackets:
+                case DelimiterMode.AngleBrackets:
                     foreach (var line in lines)
                         line.SetDelimiterType(IncludeLineInfo.DelimiterType.AngleBrackets);
                     break;
-                case FormatterOptionsPage.DelimiterMode.Quotes:
+                case DelimiterMode.Quotes:
                     foreach (var line in lines)
                         line.SetDelimiterType(IncludeLineInfo.DelimiterType.Quotes);
                     break;
             }
         }
 
-        private static void FormatSlashes(IEnumerable<IncludeLineInfo> lines, FormatterOptionsPage.SlashMode slashMode)
+        private static void FormatSlashes(IEnumerable<IncludeLineInfo> lines, SlashMode slashMode)
         {
             switch (slashMode)
             {
-                case FormatterOptionsPage.SlashMode.ForwardSlash:
+                case SlashMode.ForwardSlash:
                     foreach (var line in lines)
                         line.IncludeContent = line.IncludeContent.Replace('\\', '/');
                     break;
-                case FormatterOptionsPage.SlashMode.BackSlash:
+                case SlashMode.BackSlash:
                     foreach (var line in lines)
                         line.IncludeContent = line.IncludeContent.Replace('/', '\\');
                     break;
             }
         }
 
-        private static List<IncludeLineInfo> SortIncludes(IList<IncludeLineInfo> lines, FormatterOptionsPage settings, string documentName)
+        private static List<IncludeLineInfo> SortIncludes(IList<IncludeLineInfo> lines, FormatOptions settings, string documentName)
         {
             string[] precedenceRegexes = RegexUtils.FixupRegexes(settings.PrecedenceRegexes, documentName);
 
@@ -116,7 +116,7 @@ namespace IncludeToolbox.Formatter
             return outSortedList;
         }
 
-        private static bool SortIncludeBatch(FormatterOptionsPage settings, string[] precedenceRegexes,
+        private static bool SortIncludeBatch(FormatOptions settings, string[] precedenceRegexes,
                                             List<IncludeLineInfo> outSortedList, IEnumerable<IncludeLineInfo> includeBatch)
         {
             // Get enumerator and cancel if batch is empty.
@@ -124,7 +124,7 @@ namespace IncludeToolbox.Formatter
                 return false;
 
             // Fetch settings.
-            FormatterOptionsPage.TypeSorting typeSorting = settings.SortByType;
+            TypeSorting typeSorting = settings.SortByType;
             bool regexIncludeDelimiter = settings.RegexIncludeDelimiter;
             bool blankAfterRegexGroupMatch = settings.BlankAfterRegexGroupMatch;
 
@@ -171,9 +171,9 @@ namespace IncludeToolbox.Formatter
             var sortedIncludes = includeGroups.SelectMany(x => x.Select(y => y));
 
             // Sort by angle or quoted delimiters if either of those options were selected
-            if (typeSorting == FormatterOptionsPage.TypeSorting.AngleBracketsFirst)
+            if (typeSorting == TypeSorting.AngleBracketsFirst)
                 sortedIncludes = sortedIncludes.OrderBy(x => x.LineDelimiterType == IncludeLineInfo.DelimiterType.AngleBrackets ? 0 : 1);
-            else if (typeSorting == FormatterOptionsPage.TypeSorting.QuotedFirst)
+            else if (typeSorting == TypeSorting.QuotedFirst)
                 sortedIncludes = sortedIncludes.OrderBy(x => x.LineDelimiterType == IncludeLineInfo.DelimiterType.Quotes ? 0 : 1);
 
             // Merge sorted includes with original non-include lines
@@ -223,7 +223,7 @@ namespace IncludeToolbox.Formatter
         /// <param name="includeDirectories">A list of include directories</param>
         /// <param name="settings">Settings that determine how the formating should be done.</param>
         /// <returns>Formated text.</returns>
-        public static string FormatIncludes(string text, string documentPath, IEnumerable<string> includeDirectories, FormatterOptionsPage settings)
+        public static string FormatIncludes(string text, string documentPath, IEnumerable<string> includeDirectories, FormatOptions settings)
         {
             string documentDir = Path.GetDirectoryName(documentPath);
             string documentName = Path.GetFileNameWithoutExtension(documentPath);

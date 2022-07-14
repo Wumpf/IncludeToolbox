@@ -47,7 +47,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
         {
             process.StartInfo.FileName = settings.Executable;
 
-            List<string> args = new List<string>();
+            List<string> args = new();
 
             switch (settings.Comms)
             {

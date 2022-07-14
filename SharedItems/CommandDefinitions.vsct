@@ -154,7 +154,7 @@
 	</Commands>
 
 	<VisibilityConstraints>
-		<VisibilityItem guid="guidCodeMenuCmdSet" id="GenMap" context="GHeaderOnly"/>
+		<!--<VisibilityItem guid="guidCodeMenuCmdSet" id="GenMap" context="GHeaderOnly"/>-->
 		<VisibilityItem guid="guidCodeMenuCmdSet" id="IncludeWhatYouUseId" context="GOnlyVC"/>
 	</VisibilityConstraints>
 

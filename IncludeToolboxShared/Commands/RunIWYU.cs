@@ -5,9 +5,10 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
+
+
 
 namespace IncludeToolbox.Commands
 {
@@ -43,12 +44,13 @@ namespace IncludeToolbox.Commands
         {
             Command.Supported = false;
             var settings = await IWYUOptions.GetLiveInstanceAsync();
-            if(settings.Executable == IWYUDownload.GetDefaultExecutablePath())
+            if (settings.Executable == IWYUDownload.GetDefaultExecutablePath())
                 download_required = await IWYUDownload.IsNewerVersionAvailableOnlineAsync();
         }
 
         private async Task<bool> DownloadAsync(IVsThreadedWaitDialogFactory dialogFactory)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (!await VS.MessageBox.ShowConfirmAsync($"Can't locate include-what-you-use. Do you want to download it from '{IWYUDownload.DisplayRepositorURL}'?"))
                 return false;
 
@@ -59,7 +61,8 @@ namespace IncludeToolbox.Commands
 
             downloader.OnProgress += (string section, string status, float percentage) =>
                 {
-                    bool canceled;
+                    ThreadHelper.ThrowIfNotOnUIThread();
+
                     dialog.UpdateProgress(
                     szUpdatedWaitMessage: section,
                     szProgressText: status,
@@ -67,7 +70,7 @@ namespace IncludeToolbox.Commands
                     iCurrentStep: (int)(percentage * 100),
                     iTotalSteps: 100,
                     fDisableCancel: true,
-                    pfCanceled: out canceled);
+                    pfCanceled: out bool canceled);
                 };
 
             dialog.StartWaitDialogWithCallback(
@@ -128,6 +131,7 @@ namespace IncludeToolbox.Commands
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var settings = await IWYUOptions.GetLiveInstanceAsync();
             var dlg = (IVsThreadedWaitDialogFactory)await VS.Services.GetThreadedWaitDialogAsync();
 
@@ -154,7 +158,15 @@ namespace IncludeToolbox.Commands
 
             dialog.StartWaitDialogWithCallback("Include Minimizer", "Running include-what-you-use", null, null, "Running include-what-you-use", true, 0, true, 0, 0, cancelCallback);
 
-            var result = await proc.StartAsync(doc.FilePath, settings.AlwaysRebuid);
+            bool result = false;
+            try
+            {
+                result = await proc.StartAsync(doc.FilePath, settings.AlwaysRebuid);
+            }
+            catch (Exception ex)
+            {
+                _ = Output.WriteLineAsync("IWYU Failed with error:" + ex.Message);
+            }
 
             if (dialog.EndWaitDialog() || result == false) return;
 

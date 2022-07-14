@@ -31,6 +31,21 @@ namespace IncludeToolbox
             return doc.ProjectItem?.ContainingProject;
         }
 
+        public static async Task<IEnumerable<string>> GetIncludeDirsAsync()
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var prj = await GetProjectAsync();
+            var proj = prj.Object as VCProject;
+            if (proj == null) { VS.MessageBox.ShowErrorAsync("IWYU Error:", "The project is not a Visual Studio C/C++ type.").FireAndForget(); return null; }
+
+            var cfg = proj.ActiveConfiguration;
+            var cl = cfg?.Rules;
+            if (cl == null) { VS.MessageBox.ShowErrorAsync("IWYU Error:", "Failed to gather Compiler info.").FireAndForget(); return null; }
+            var com = (IVCRulePropertyStorage2)cl.Item("CL");
+            return com.GetEvaluatedPropertyValue("AdditionalIncludeDirectories")
+                .Split(';').Where(s => !string.IsNullOrWhiteSpace(s));
+        }
+
         public static async Task<string> GetCommandLineAsync(bool rebuild)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();

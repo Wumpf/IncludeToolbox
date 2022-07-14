@@ -249,7 +249,7 @@ namespace IncludeToolbox.Formatter
                 }
             }
 
-            Output.Instance.WriteLine("Unable to resolve include: '{0}'", includeContent);
+            Output.WriteLine($"Unable to resolve include: '{includeContent}'");
             success = false;
             return includeContent;
         }

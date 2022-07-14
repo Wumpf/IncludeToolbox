@@ -1,86 +1,60 @@
 ﻿using System;
-using System.ComponentModel.Design;
 using System.Linq;
+using System.Threading.Tasks;
+using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Task = System.Threading.Tasks.Task;
 
+
 namespace IncludeToolbox.Commands
 {
-    /// <summary>
-    /// Command handler
-    /// </summary>
-    internal sealed class FormatIncludes : CommandBase<FormatIncludes>
+    [Command(PackageIds.FormatIncludesId)]
+    internal sealed class FormatIncludes : BaseCommand<RunIWYU>
     {
-        public override CommandID CommandID => new CommandID(CommandSetGuids.MenuGroup, 0x0100);
-
-        public FormatIncludes()
+        SnapshotSpan GetSelectionLines(IWpfTextView viewHost)
         {
-        }
-
-        protected override void SetupMenuCommand()
-        {
-            base.SetupMenuCommand();
-            menuCommand.BeforeQueryStatus += UpdateVisibility;
-        }
-        
-        private void UpdateVisibility(object sender, EventArgs e)
-        {
-            // Check whether any includes are selected.
-            var viewHost = VSUtils.GetCurrentTextViewHost();
-            var selectionSpan = GetSelectionSpan(viewHost);
-            var lines = Formatter.IncludeLineInfo.ParseIncludes(selectionSpan.GetText(), Formatter.ParseOptions.RemoveEmptyLines);
-
-            menuCommand.Visible = lines.Any(x => x.ContainsActiveInclude);
-        }
-
-        /// <summary>
-        /// Returns process selection range - whole lines!
-        /// </summary>
-        SnapshotSpan GetSelectionSpan(IWpfTextViewHost viewHost)
-        {
-            var sel = viewHost.TextView.Selection.StreamSelectionSpan;
-            var start = new SnapshotPoint(viewHost.TextView.TextSnapshot, sel.Start.Position).GetContainingLine().Start;
-            var end = new SnapshotPoint(viewHost.TextView.TextSnapshot, sel.End.Position).GetContainingLine().End;
+            if (viewHost == null) return new SnapshotSpan();
+            var sel = viewHost.Selection.StreamSelectionSpan;
+            var start = new SnapshotPoint(viewHost.TextSnapshot, sel.Start.Position).GetContainingLine().Start;
+            var end = new SnapshotPoint(viewHost.TextSnapshot, sel.End.Position).GetContainingLine().End;
 
             return new SnapshotSpan(start, end);
         }
-
-        /// <summary>
-        /// This function is the callback used to execute the command when the menu item is clicked.
-        /// See the constructor to see how the menu item is associated with this function using
-        /// OleMenuCommandService service and MenuCommand class.
-        /// </summary>
-        /// <param name="sender">Event sender.</param>
-        /// <param name="e">Event args.</param>
-        protected override async Task MenuItemCallback(object sender, EventArgs e)
+        async Task<SnapshotSpan> GetSelectionLinesAsync()
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            IWpfTextView viewHost = (await VS.Documents.GetActiveDocumentViewAsync())?.TextView;
+            return GetSelectionLines(viewHost);
+        }
 
-            var settings = (FormatterOptionsPage)Package.GetDialogPage(typeof(FormatterOptionsPage));
 
-            // Try to find absolute paths
-            var document = VSUtils.GetDTE().ActiveDocument;
-            var project = document.ProjectItem?.ContainingProject;
-            if (project == null)
-            {
-                Output.Instance.WriteLine("The document '{0}' is not part of a project.", document.Name);
-                return;
-            }
-            var includeDirectories = VSUtils.GetProjectIncludeDirectories(project);
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Has to be synchronous")]
+        protected override void BeforeQueryStatus(EventArgs e)
+        {
+            var selection_span = GetSelectionLinesAsync().Result;
+            var lines = Formatter.IncludeLineInfo.ParseIncludes(selection_span.GetText(), Formatter.ParseOptions.RemoveEmptyLines);
+            Command.Visible = lines.Any(x => x.ContainsActiveInclude);
+        }
 
+
+
+
+        protected override async Task ExecuteAsync(OleMenuCmdEventArgs args)
+        {
+            var settings = await FormatOptions.GetLiveInstanceAsync();
+            var doc = await VS.Documents.GetActiveDocumentViewAsync();
             // Read.
-            var viewHost = VSUtils.GetCurrentTextViewHost();
-            var selectionSpan = GetSelectionSpan(viewHost);
+            var selection_span = await GetSelectionLinesAsync();
+            var include_directories = await VCUtil.GetIncludeDirsAsync();
 
             // Format
-            string formatedText = Formatter.IncludeFormatter.FormatIncludes(selectionSpan.GetText(), document.FullName, includeDirectories, settings);
+            string formatedText = Formatter.IncludeFormatter.FormatIncludes(selection_span.GetText(), doc.FilePath, include_directories, settings);
 
             // Overwrite.
-            using (var edit = viewHost.TextView.TextBuffer.CreateEdit())
+            using (var edit = doc.TextBuffer.CreateEdit())
             {
-                edit.Replace(selectionSpan, formatedText);
+                edit.Replace(selection_span, formatedText);
                 edit.Apply();
             }
         }
