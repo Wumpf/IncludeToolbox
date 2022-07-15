@@ -119,6 +119,17 @@ namespace IncludeToolbox.IncludeWhatYouUse
         {
             string targetDirectory = GetDefaultFolder();
             Directory.CreateDirectory(targetDirectory);
+            DirectoryInfo di = new DirectoryInfo(targetDirectory);
+
+            foreach (FileInfo file in di.EnumerateFiles())
+            {
+                file.Delete();
+            }
+            foreach (DirectoryInfo dir in di.EnumerateDirectories())
+            {
+                dir.Delete(true);
+            }
+
             string targetZipFile = Path.Combine(targetDirectory, "download.zip");
 
             // Download.
@@ -155,6 +166,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
             catch (Exception e)
             {
                 _ = Output.WriteLineAsync("Failed to unpack IWYU with error:" + e.Message);
+                File.Delete(targetZipFile);
                 return;
             }
 

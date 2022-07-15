@@ -89,6 +89,7 @@ namespace IncludeToolbox.Commands
             var settings = await IWYUOptions.GetLiveInstanceAsync();
             settings.Executable = IWYUDownload.GetDefaultExecutablePath();
 
+            await settings.SaveAsync();
 
             return true;
         }

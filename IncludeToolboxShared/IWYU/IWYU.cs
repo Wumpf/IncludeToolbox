@@ -95,6 +95,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
             var text = snap.GetText();
             int begin = text.IndexOf("#include");
             int end = text.LastIndexOf("#include");
+            end = text.IndexOf('\n', end);
             text = text.Substring(begin, end - begin); //optimized
 
             // Get all commentary spans

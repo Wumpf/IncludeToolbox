@@ -32,6 +32,7 @@
 				<Icon guid="MonikersGuid" id="IncludeFormatterIcons_0" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
 				<Strings>
 					<ButtonText>Format Includes</ButtonText>
 					<LocCanonicalName>.IncludeToolbox2022.FormatIncludesId</LocCanonicalName>
