@@ -38,16 +38,39 @@
 					<LocCanonicalName>.IncludeToolbox2022.FormatIncludesId</LocCanonicalName>
 				</Strings>
 			</Button>
+			<Button guid="IncludeToolbox2022" id="TrialAndError" priority="0x0102" type="Button">
+				<Parent guid="IncludeToolbox2022" id="ContextMenuGroup" />
+				<Icon guid="MonikersGuid" id="IncludeFormatterIcons_1" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Trial And Error Include Removal</ButtonText>
+					<LocCanonicalName>.IncludeToolbox2022.TrialAndError</LocCanonicalName>
+				</Strings>
+			</Button>
+
+
+			<!--<Button guid="IncludeToolbox2022" id="ProjectWideTrialAndErrorRemoval" priority="0x2002" type="Button">
+				<Parent guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJECT_BUILD" />
+				<Icon guid="MonikersGuid" id="IncludeFormatterIcons_2" />
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<Strings>
+					<ButtonText>Trial and Error Include Removal</ButtonText>
+				</Strings>
+			</Button>-->
 		</Buttons>
 	</Commands>
 
 	<VisibilityConstraints>
 		<!--<VisibilityItem guid="guidCodeMenuCmdSet" id="GenMap" context="GHeaderOnly"/>-->
 		<VisibilityItem guid="IncludeToolbox2022" id="IncludeWhatYouUseId" context="GOnlyVC"/>
+		<VisibilityItem guid="IncludeToolbox2022" id="TrialAndError" context="GOnlyCpp"/>
 	</VisibilityConstraints>
 	<KeyBindings>
 		<KeyBinding guid="IncludeToolbox2022" id="IncludeWhatYouUseId" key1="K" key2="I" mod1="CONTROL" editor="guidVSStd97"/>
 		<KeyBinding guid="IncludeToolbox2022" id="FormatIncludesId" key1="K" key2="F" mod1="CONTROL" editor="guidVSStd97"/>
+		<KeyBinding guid="IncludeToolbox2022" id="TrialAndError" key1="K" key2="T" mod1="CONTROL" editor="guidVSStd97"/>
 	</KeyBindings>
 
 	<Symbols>
@@ -55,10 +78,13 @@
 			<IDSymbol name="ContextMenuGroup" value="0x0001" />
 			<IDSymbol name="IncludeWhatYouUseId" value="0x0100" />
 			<IDSymbol name="FormatIncludesId" value="0x0101" />
+			<IDSymbol name="TrialAndError" value="0x0102" />
+			<!--<IDSymbol name="ProjectWideTrialAndErrorRemoval" value="0x0110" />-->
 		</GuidSymbol>
 
 		<!-- Visibility Constraints -->
 		<GuidSymbol name="GHeaderOnly" value="{a34e853e-8679-4a07-918e-982a1b3b0a6b}"/>
 		<GuidSymbol name="GOnlyVC" value="{1175290a-3e8f-4718-868c-c08b5d2b09a7}"/>
+		<GuidSymbol name="GOnlyCpp" value="{bf397895-9307-431f-a823-1c85d430243a}"/>
 	</Symbols>
 </CommandTable>
