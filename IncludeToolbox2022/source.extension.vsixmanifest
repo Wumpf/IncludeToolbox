@@ -9,7 +9,6 @@
         <Icon>Resources\IncludeFormatterPackage.png</Icon>
         <PreviewImage>Resources\IncludeFormatterPackage.png</PreviewImage>
         <Tags>Include, Include What You Use, IWYU, Include Formatting, Include Sorting, #include, Include Removal</Tags>
-        <Preview>true</Preview>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">

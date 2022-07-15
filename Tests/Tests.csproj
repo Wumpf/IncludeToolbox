@@ -104,9 +104,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\IncludeToolbox17\IncludeToolbox17.csproj">
-      <Project>{f0b1e969-bb7f-435f-b49e-e2e5018793ee}</Project>
-      <Name>IncludeToolbox17</Name>
+    <ProjectReference Include="..\IncludeToolbox2022\IncludeToolbox2022.csproj">
+      <Project>{7d29cece-07d3-4417-9d63-1362852f18f3}</Project>
+      <Name>IncludeToolbox2022</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

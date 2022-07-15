@@ -1,33 +1,22 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.3.32708.82
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32630.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{F577F5D2-5E3C-43BE-9030-AF2609A0917A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SharedItems", "SharedItems", "{C64DE41F-331D-4FA6-B82D-BDC49107449A}"
-	ProjectSection(SolutionItems) = preProject
-		SharedItems\CommandDefinitions.vsct = SharedItems\CommandDefinitions.vsct
-	EndProjectSection
-EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IncludeToolboxShared", "IncludeToolboxShared\IncludeToolboxShared.shproj", "{C50C4863-6200-4E51-837A-31FEBC09C8B2}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{0FB00D40-06A5-43BC-8898-5EB876CD8F33}"
-	ProjectSection(SolutionItems) = preProject
-		SharedItems\Resources\hash.png = SharedItems\Resources\hash.png
-		SharedItems\Resources\include13.png = SharedItems\Resources\include13.png
-		SharedItems\Resources\include16.png = SharedItems\Resources\include16.png
-		SharedItems\Resources\IncludeFormatterIcons.pdn = SharedItems\Resources\IncludeFormatterIcons.pdn
-		SharedItems\Resources\IncludeFormatterIcons.png = SharedItems\Resources\IncludeFormatterIcons.png
-		SharedItems\Resources\IncludeFormatterPackage.png = SharedItems\Resources\IncludeFormatterPackage.png
-		SharedItems\Resources\IncludeGraphToolbarIcons.png = SharedItems\Resources\IncludeGraphToolbarIcons.png
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncludeToolbox16", "IncludeToolbox16\IncludeToolbox16.csproj", "{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncludeToolbox2022", "IncludeToolbox2022\IncludeToolbox2022.csproj", "{7D29CECE-07D3-4417-9D63-1362852F18F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncludeToolbox2019", "IncludeToolbox2019\IncludeToolbox2019.csproj", "{A81A5332-6A20-4F3B-90B4-E55985B9CF59}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		IncludeToolboxShared\IncludeToolboxShared.projitems*{7d29cece-07d3-4417-9d63-1362852f18f3}*SharedItemsImports = 4
+		IncludeToolboxShared\IncludeToolboxShared.projitems*{a81a5332-6a20-4f3b-90b4-e55985b9cf59}*SharedItemsImports = 4
+		IncludeToolboxShared\IncludeToolboxShared.projitems*{c50c4863-6200-4e51-837a-31febc09c8b2}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
@@ -43,14 +32,6 @@ Global
 		{F577F5D2-5E3C-43BE-9030-AF2609A0917A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F577F5D2-5E3C-43BE-9030-AF2609A0917A}.Release|x86.ActiveCfg = Release|Any CPU
 		{F577F5D2-5E3C-43BE-9030-AF2609A0917A}.Release|x86.Build.0 = Release|Any CPU
-		{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}.Debug|x86.ActiveCfg = Debug|x86
-		{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}.Debug|x86.Build.0 = Debug|x86
-		{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}.Release|x86.ActiveCfg = Release|x86
-		{F7C3930F-A0C8-419C-8980-CAF98CCAD2F8}.Release|x86.Build.0 = Release|x86
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|x86.ActiveCfg = Debug|x86
@@ -59,18 +40,19 @@ Global
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|x86.ActiveCfg = Release|x86
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|x86.Build.0 = Release|x86
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|x86.ActiveCfg = Debug|x86
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|x86.Build.0 = Debug|x86
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|x86.ActiveCfg = Release|x86
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{0FB00D40-06A5-43BC-8898-5EB876CD8F33} = {C64DE41F-331D-4FA6-B82D-BDC49107449A}
-	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {87A2994A-8E27-4066-8C05-7E4DD461D23D}
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		IncludeToolboxShared\IncludeToolboxShared.projitems*{7d29cece-07d3-4417-9d63-1362852f18f3}*SharedItemsImports = 4
-		IncludeToolboxShared\IncludeToolboxShared.projitems*{c50c4863-6200-4e51-837a-31febc09c8b2}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

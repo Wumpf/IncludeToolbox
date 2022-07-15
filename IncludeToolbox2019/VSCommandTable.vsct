@@ -61,7 +61,6 @@
 			</Button>
 		</Buttons>
 	</Commands>
-
 	<VisibilityConstraints>
 		<!--<VisibilityItem guid="guidCodeMenuCmdSet" id="GenMap" context="GHeaderOnly"/>-->
 		<VisibilityItem guid="IncludeToolbox" id="IncludeWhatYouUseId" context="GOnlyVC"/>
@@ -74,7 +73,7 @@
 	</KeyBindings>
 
 	<Symbols>
-		<GuidSymbol name="IncludeToolbox" value="{2e77f2e4-5f04-4052-8e63-ca2b41cd0315}">
+		<GuidSymbol name="IncludeToolbox" value="{7473f721-f6c8-4e39-98c2-e08d79a89525}">
 			<IDSymbol name="ContextMenuGroup" value="0x0001" />
 			<IDSymbol name="IncludeWhatYouUseId" value="0x0100" />
 			<IDSymbol name="FormatIncludesId" value="0x0101" />

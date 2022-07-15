@@ -12,7 +12,7 @@ namespace IncludeToolbox
     /// </summary>
     internal sealed partial class PackageGuids
     {
-        public const string IncludeToolboxString = "2e77f2e4-5f04-4052-8e63-ca2b41cd0315";
+        public const string IncludeToolboxString = "7473f721-f6c8-4e39-98c2-e08d79a89525";
         public static Guid IncludeToolbox = new Guid(IncludeToolboxString);
 
         public const string GHeaderOnlyString = "a34e853e-8679-4a07-918e-982a1b3b0a6b";

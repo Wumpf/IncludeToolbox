@@ -7,11 +7,11 @@ namespace IncludeToolbox
 {
     internal sealed partial class Vsix
     {
-        public const string Id = "IncludeToolbox16.075c2e2b-7b71-45ba-b2e6-c1dadc81cfac";
+        public const string Id = "IncludeToolbox2019.1431faa5-aa04-47af-8289-9d887e0696a4";
         public const string Name = "Include Toolbox 2019";
         public const string Description = @"Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning.";
         public const string Language = "en-US";
-        public const string Version = "3.0.0";
+        public const string Version = "1.0";
         public const string Author = "Ilya Doroshenko";
         public const string Tags = "Include, Include What You Use, IWYU, Include Formatting, Include Sorting, #include, Include Removal";
     }
