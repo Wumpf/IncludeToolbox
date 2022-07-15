@@ -27,7 +27,7 @@ namespace IncludeToolbox
         string[] iwyu_options = new string[] { };
 
         [Browsable(false)]
-        public bool Dirty { get; private set; }
+        public bool Dirty { get; private set; } = true;
 
         [Category("General")]
         [DisplayName("IWYU Executable")]
