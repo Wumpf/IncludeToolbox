@@ -46,9 +46,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="MyImageIds.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
       <DependentUpon>MyImageIds.vsct</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="source.extension.cs">
@@ -70,10 +70,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="MyImageIds.vsct">
-      <Generator>VsctGenerator</Generator>
-      <LastGenOutput>MyImageIds.cs</LastGenOutput>
-    </Content>
     <Resource Include="Resources\IncludeGraphToolbarIcons_1.png" />
     <Resource Include="Resources\IncludeGraphToolbarIcons_0.png" />
     <Resource Include="Resources\IncludeFormatterIcons_3.png" />
@@ -125,6 +121,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <VSCTInclude Include="MyImageIds.vsct">
+      <Generator>VsctGenerator</Generator>
+      <LastGenOutput>MyImageIds.cs</LastGenOutput>
+    </VSCTInclude>
   </ItemGroup>
   <Import Project="..\IncludeToolboxShared\IncludeToolboxShared.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
