@@ -42,7 +42,7 @@ namespace IncludeToolbox
             var cl = cfg?.Rules;
             if (cl == null) { VS.MessageBox.ShowErrorAsync("IWYU Error:", "Failed to gather Compiler info.").FireAndForget(); return null; }
             var com = (IVCRulePropertyStorage2)cl.Item("CL");
-            return com.GetEvaluatedPropertyValue("AdditionalIncludeDirectories")
+            return com.GetEvaluatedPropertyValue("AdditionalIncludeDirectories").Replace('\\','/')
                 .Split(';').Where(s => !string.IsNullOrWhiteSpace(s));
         }
 
@@ -65,7 +65,7 @@ namespace IncludeToolbox
 
             var com = (IVCRulePropertyStorage2)cl.Item("CL");
             var xstandard = com.GetEvaluatedPropertyValue("LanguageStandard");
-            var includes = com.GetEvaluatedPropertyValue("AdditionalIncludeDirectories")
+            var includes = com.GetEvaluatedPropertyValue("AdditionalIncludeDirectories").Replace('\\', '/')
                 .Split(';').Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select(x => "-I\"" + x + '\"');
             var defs = com.GetEvaluatedPropertyValue("PreprocessorDefinitions")

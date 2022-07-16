@@ -5,8 +5,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox.IncludeWhatYouUse
@@ -19,10 +22,11 @@ namespace IncludeToolbox.IncludeWhatYouUse
         string support_path = "";
         string support_cpp_path = "";
 
-        readonly string match = "The full include-list for ";
-        readonly Regex include = new("#include ([<\"].*[>\"])");
-        readonly Regex include_from_file = new("#include(?:(?:\\/\\*.*\\*\\/)|[^\\S\\r\\n])*([<\\\"].*[>\\\"])");
-        readonly Regex commentary = new("(?:\\/\\*(?:.|\\r|\\n)*?\\*\\/)|(?:\\/\\/.*?\\n)");
+        static readonly string match = "The full include-list for ";
+        static readonly Regex include = new("#include ([<\"].*[>\"])");
+        static readonly Regex include_from_file = new("#include(?:(?:\\/\\*.*\\*\\/)|[^\\S\\r\\n])*([<\\\"].*[>\\\"])");
+        static readonly Regex commentary = new("(?:\\/\\*(?:.|\\r|\\n)*?\\*\\/)|(?:\\/\\/.*?\\n)");
+
 
 
         public IWYU()
@@ -48,13 +52,6 @@ namespace IncludeToolbox.IncludeWhatYouUse
             process.StartInfo.FileName = settings.Executable;
 
             List<string> args = new();
-
-            switch (settings.Comms)
-            {
-                case Comment.Always: args.Add("--update_comments"); break;
-                case Comment.Never: args.Add("--no_comments"); break;
-                case Comment.Default: break;
-            }
             args.Add(string.Format("--verbose={0}", settings.Verbosity));
 
             if (settings.Precompiled || settings.IgnoreHeader)
@@ -81,50 +78,9 @@ namespace IncludeToolbox.IncludeWhatYouUse
             settings.ClearFlag();
         }
 
-        /// <summary>
-        /// Heavy function for include detection. 
-        /// Inlcude may be inside the commentary or between multiline comms, 
-        /// so the detection should be correctly defined.
-        /// Still Does not count for prepro
-        /// </summary>
-        /// <param name="snap"></param>
-        /// <returns>Dictionary of valid includes</returns>
-        Dictionary<string, List<Span>> ParseIncludes(ITextSnapshot snap, out int first_pos)
-        {
-            first_pos = 0;
-            var text = snap.GetText();
-            int begin = text.IndexOf("#include");
-            int end = text.LastIndexOf("#include");
-            end = text.IndexOf('\n', end);
-            text = text.Substring(begin, end - begin); //optimized
 
-            // Get all commentary spans
-            var comms = commentary.Matches(text).Cast<Match>().Select(s =>
-            { var a = s.Captures[0]; return new Span(a.Index, a.Length); });
 
-            // gather all the includes, that are not commented!
-            var includes = include_from_file.Matches(text).Cast<Match>()
-                .Where(s => !comms.Any(sp => sp.Contains(s.Captures[0].Index)))
-                .Select(s =>
-                {
-                    var a = s.Groups[0];
-                    return new KeyValuePair<string, Span>(s.Groups[1].Value, new Span(a.Index, a.Length));
-                });
-
-            if (includes.Count() != 0)
-                first_pos = includes.First().Value.Start;
-
-            var dict = new Dictionary<string, List<Span>>();
-            foreach (var inc in includes)
-            {
-                if (!dict.ContainsKey(inc.Key))
-                    dict[inc.Key] = new List<Span>();
-                dict[inc.Key].Add(inc.Value);
-            }
-
-            return dict;
-        }
-        public async Task ApplyAsync()
+        public async Task ApplyAsync(IWYUOptions settings)
         {
             if (output == "") return;
 
@@ -133,33 +89,30 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 int pos = output.IndexOf(match);
                 if (pos == -1) return;
 
-                var tasks = output.Substring(0, pos)
-                    .Split('\n').Select(l => l.Trim());
-
                 pos = pos + match.Length;
                 string part = output.Substring(pos);
+
+                int endp = part.IndexOf("---");
                 string path = part.Substring(0, part.IndexOf(':', 3));
                 var doc = await VS.Documents.OpenAsync(path);
                 var edit = doc.TextBuffer.CreateEdit();
 
-                var dict = ParseIncludes(doc.TextBuffer.CurrentSnapshot, out int start);
 
-
-                foreach (var task in tasks)
+                if (settings.Sub == Substitution.Cheap)
                 {
-                    if (task.StartsWith("- #include"))
-                    {
-                        var rem = include.Match(task).Groups[1].Value;
-                        edit.Delete(dict[rem].First());
-                        dict[rem].RemoveAt(0);
-                    }
-                    if (task.StartsWith("#include"))
-                    {
-                        edit.Insert(start, task);
-                    }
+                    int endl = part.IndexOf("\n");
+                    IWYUApply.ApplyCheap(edit, part.Substring(endl, endp - endl), settings.Comms != Comment.No);
                 }
+                else
+                {
+                    var tasks = output.Substring(0, pos)
+                    .Split('\n').Select(l => l.Trim());
+                    IWYUApply.ParseTasks(tasks, settings.Comms != Comment.No)
+                        .Apply(edit);
+                }
+
                 edit.Apply();
-                output = part.Substring(part.IndexOf("---"));
+                output = part.Substring(endp);
             }
         }
 

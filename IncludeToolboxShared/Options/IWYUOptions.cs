@@ -14,7 +14,8 @@ namespace IncludeToolbox
     public class IWYUOptions : BaseOptionModel<IWYUOptions>
     {
         string exe = "";
-        Comment comm = Comment.Default;
+        Comment comm = Comment.Yes;
+        Substitution subs = Substitution.Cheap;
         uint verbose = 2;
         bool pch = false;
         bool nodefault = false;
@@ -27,6 +28,7 @@ namespace IncludeToolbox
         string[] iwyu_options = new string[] { };
 
         [Browsable(false)]
+        [DefaultValue(true)]
         public bool Dirty { get; private set; } = true;
 
         [Category("General")]
@@ -46,7 +48,7 @@ namespace IncludeToolbox
         [Category("General")]
         [DisplayName("Print Commentaries")]
         [Description("Tells IWYU to show or hide individual commentaries to headers.")]
-        [DefaultValue(Comment.Default)]
+        [DefaultValue(Comment.Yes)]
         [TypeConverter(typeof(EnumConverter))]
         public Comment Comms { get { return comm; } set { Dirty = true; comm = value; } }
         
@@ -86,6 +88,13 @@ namespace IncludeToolbox
         [DefaultValue(false)]
         public bool AlwaysRebuid { get { return always; } set { Dirty = true; always = value; } }
 
+        [Category("General")]
+        [DisplayName("Substitution Mode")]
+        [Description("Choose the model of substitution for headers. If includes are scattered across the file, the mode is precise. Cheap is used when includes are a block before any code. If used wrong, Cheap may remove code between first and the last include.")]
+        [TypeConverter(typeof(EnumConverter))]
+        public Substitution Sub { get { return subs; } set { subs = value; Dirty = true; } }
+
+
         [Category("Options")]
         [DisplayName("IWYU options")]
         [Description("IWYU launch options, that determine the flow of include-what-you-use.")]
@@ -108,6 +117,8 @@ namespace IncludeToolbox
         [DefaultValue(false)]
         public bool IgnoreHeader { get { return header; } set { header = value; Dirty = true; } }
 
+
+
         public void ClearFlag()
         {
             Dirty = false;
@@ -116,8 +127,12 @@ namespace IncludeToolbox
 
     public enum Comment
     {
-        Default,
-        Always,
-        Never
+        Yes,
+        No
+    }
+    public enum Substitution
+    {
+        Cheap,
+        Precise
     }
 }

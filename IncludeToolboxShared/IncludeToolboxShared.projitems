@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatter\IncludeLineInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IncludeToolboxPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYU.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUApply.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUDownload.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\FormatterOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IWYUOptions.cs" />

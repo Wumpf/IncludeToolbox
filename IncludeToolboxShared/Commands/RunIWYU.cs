@@ -167,7 +167,7 @@ namespace IncludeToolbox.Commands
 
             if (dialog.EndWaitDialog() || result == false) return;
 
-            await proc.ApplyAsync();
+            await proc.ApplyAsync(settings);
         }
     }
 }
