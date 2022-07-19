@@ -121,8 +121,8 @@ namespace IncludeToolbox.Commands
             if (!match.Success) return;
             var edit = buf.CreateEdit();
             _ = edit.Delete(new(match.Index, match.Length));
-            /// TODO: remove, replace with format
-            edit.Insert(begin, $"#include <{match.Groups[1].Value}>\n");
+
+            edit.Insert(begin, match.Value + IWYUApply.GetLineBreak(edit));
             edit.Apply();
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace IncludeToolbox
 {
@@ -44,6 +45,7 @@ namespace IncludeToolbox
                 this.rem = rem;
                 rem.Sort((a, b) => { return b.LineRange.Start.CompareTo(a.LineRange.Start); });
             }
+
             public void Apply(ITextEdit edit)
             {
                 int start_pos = 0;
@@ -83,6 +85,14 @@ namespace IncludeToolbox
             }
         }
 
+        public static Span GetIncludeSpan(string text)
+        {
+            int[] line = new int[2];
+            line[0] = text.IndexOf("#include"); //first
+            line[1] = text.IndexOf("\n", text.LastIndexOf("#include")) - line[0]; //last
+            return new Span(line[0], line[1]);
+        }
+
         public static string GetLineBreak(ITextEdit edit)
         {
             return edit.Snapshot.Lines.ElementAt(0).GetLineBreakText();
@@ -99,16 +109,18 @@ namespace IncludeToolbox
                         var str = s.Trim();
                         var idx = str.IndexOf("//");
                         if (idx >= 0)
-                            return str.Substring(0, idx);
+                            return str.Substring(0, idx).Trim();
                         return str;
                     }).ToArray());
             }
+            var span = GetIncludeSpan(edit.Snapshot.GetText());
+            edit.Replace(span, result);
+        }
 
-            int[] line = new int[2];
-            var lines = edit.Snapshot.GetText();
-            line[0] = lines.IndexOf("#include"); //first
-            line[1] = lines.IndexOf("\n",lines.LastIndexOf("#include")) - line[0]; //last
-            edit.Replace(line[0], line[1], result);
+        public static async Task<string> PreformatAsync(string text, string file)
+        {
+            var include_directories = await VCUtil.GetIncludeDirsAsync();
+            return Formatter.IncludeFormatter.FormatIncludes(text, file, include_directories, await FormatOptions.GetLiveInstanceAsync());
         }
 
         public static ApplyTasks ParseTasks(IEnumerable<string> tasks, bool commentary)

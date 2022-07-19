@@ -5,28 +5,20 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox.IncludeWhatYouUse
 {
     internal class IWYU
     {
-        Process process = new Process();
+        Process process = new();
         string output = "";
         string command_line = "";
         string support_path = "";
         string support_cpp_path = "";
 
         static readonly string match = "The full include-list for ";
-        static readonly Regex include = new("#include ([<\"].*[>\"])");
-        static readonly Regex include_from_file = new("#include(?:(?:\\/\\*.*\\*\\/)|[^\\S\\r\\n])*([<\\\"].*[>\\\"])");
-        static readonly Regex commentary = new("(?:\\/\\*(?:.|\\r|\\n)*?\\*\\/)|(?:\\/\\/.*?\\n)");
-
 
 
         public IWYU()
@@ -80,6 +72,15 @@ namespace IncludeToolbox.IncludeWhatYouUse
 
 
 
+        async Task Format(DocumentView doc)
+        {
+            using var xedit = doc.TextBuffer.CreateEdit();
+            var text = xedit.Snapshot.GetText();
+            var span = IWYUApply.GetIncludeSpan(text);
+            var result = await IWYUApply.PreformatAsync(new SnapshotSpan(xedit.Snapshot, span).GetText(), doc.FilePath);
+            xedit.Replace(span, result);
+            xedit.Apply();
+        }
         public async Task ApplyAsync(IWYUOptions settings)
         {
             if (output == "") return;
@@ -89,29 +90,33 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 int pos = output.IndexOf(match);
                 if (pos == -1) return;
 
-                pos = pos + match.Length;
+                pos += match.Length;
                 string part = output.Substring(pos);
 
                 int endp = part.IndexOf("---");
                 string path = part.Substring(0, part.IndexOf(':', 3));
                 var doc = await VS.Documents.OpenAsync(path);
-                var edit = doc.TextBuffer.CreateEdit();
+                using var edit = doc.TextBuffer.CreateEdit();
 
 
                 if (settings.Sub == Substitution.Cheap)
                 {
                     int endl = part.IndexOf("\n");
-                    IWYUApply.ApplyCheap(edit, part.Substring(endl, endp - endl), settings.Comms != Comment.No);
+                    string result = part.Substring(endl, endp - endl);
+                    IWYUApply.ApplyCheap(edit, 
+                        result, 
+                        settings.Comms != Comment.No);
                 }
                 else
                 {
                     var tasks = output.Substring(0, pos)
                     .Split('\n').Select(l => l.Trim());
-                    IWYUApply.ParseTasks(tasks, settings.Comms != Comment.No)
-                        .Apply(edit);
-                }
 
+                    IWYUApply.ParseTasks(tasks, settings.Comms != Comment.No).Apply(edit);
+                }
                 edit.Apply();
+
+                if (settings.Format) await Format(doc);
                 output = part.Substring(endp);
             }
         }

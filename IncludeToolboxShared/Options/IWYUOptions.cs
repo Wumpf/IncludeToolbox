@@ -23,6 +23,7 @@ namespace IncludeToolbox
         bool warn = false;
         bool always = false;
         bool header = false;
+        bool format = false;
         string mapping = "";
         string[] clang_options = new string[] { };
         string[] iwyu_options = new string[] { };
@@ -116,8 +117,12 @@ namespace IncludeToolbox
         [Description("Ignores header of specified .cpp. Tries to find same-named .h in the includes. If it succeeds, the header is moved to the beginning and it is treated as precompiled. Useful when .h file is already refactored.")]
         [DefaultValue(false)]
         public bool IgnoreHeader { get { return header; } set { header = value; Dirty = true; } }
-
-
+        
+        [Category("Options")]
+        [DisplayName("Format After")]
+        [Description("Uses formatting tool after results of IWYU are applied.")]
+        [DefaultValue(false)]
+        public bool Format { get => format; set { format = value; Dirty = true; } }
 
         public void ClearFlag()
         {
