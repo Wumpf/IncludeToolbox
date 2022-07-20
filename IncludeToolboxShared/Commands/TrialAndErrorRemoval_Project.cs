@@ -44,12 +44,10 @@ namespace IncludeToolbox.Commands
                 }
             });
         }
-
-        private void UpdateVisibility(object sender, EventArgs e)
+        protected override void BeforeQueryStatus(EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            string reason;
-            var project = GetSelectedCppProject(out reason);
+            var project = GetSelectedCppProject(out _);
             Command.Visible = project != null;
         }
 

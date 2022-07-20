@@ -1,19 +1,28 @@
 ﻿using Community.VisualStudio.Toolkit;
-using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.VCProjectEngine;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.VisualStudio.VSConstants;
+using Project = Community.VisualStudio.Toolkit.Project;
 
 namespace IncludeToolbox
 {
+    public static class ProjectExtension
+    {
+        public static async Task<VCProject> ToVCProjectAsync(this Project project)
+        {
+            project.GetItemInfo(out var hierarchy, out _, out _);
+            return await VCUtil.GetVCProjectAsync(hierarchy);
+        }
+    }
+
     public class VCUtil
     {
-        static EnvDTE.Project cached_project;
+        static VCProject cached_project;
         public static EnvDTE80.DTE2 GetDTE()
         {
             var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as EnvDTE80.DTE2;
@@ -23,19 +32,30 @@ namespace IncludeToolbox
             }
             return dte;
         }
-        public static async Task<EnvDTE.Project> GetProjectAsync()
+        public static async Task SaveAllDocumentsAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            try
+            {
+                GetDTE().Documents.SaveAll();
+            }
+            catch (Exception e)
+            {
+                Output.WriteLineAsync($"Failed to get save all documents: {e.Message}").FireAndForget();
+            }
+        }
 
-            var doc = GetDTE().ActiveDocument;
-            return doc.ProjectItem?.ContainingProject;
+        public static async Task<VCProject> GetVCProjectAsync(IVsHierarchy hierarchy)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            _ = hierarchy.GetProperty(VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out var objProj);
+            return (objProj as EnvDTE.Project)?.Object as VCProject;
         }
 
         public static async Task<IEnumerable<string>> GetIncludeDirsAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var prj = await GetProjectAsync();
-            var proj = prj.Object as VCProject;
+            var proj = await (await VS.Solutions.GetActiveProjectAsync()).ToVCProjectAsync();
             if (proj == null) { VS.MessageBox.ShowErrorAsync("IWYU Error:", "The project is not a Visual Studio C/C++ type.").FireAndForget(); return null; }
 
             var cfg = proj.ActiveConfiguration;
@@ -48,15 +68,19 @@ namespace IncludeToolbox
 
         public static async Task<string> GetCommandLineAsync(bool rebuild)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var prj = await GetProjectAsync();
+            return await GetCommandLineAsync(rebuild, await VS.Solutions.GetActiveProjectAsync());
+        }
 
-            if (cached_project == prj && !rebuild)
+        public static async Task<string> GetCommandLineAsync(bool rebuild, Project xproj)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            var proj = await xproj.ToVCProjectAsync();
+            
+            if (cached_project == proj && !rebuild)
                 return "";
 
-            cached_project = prj;
+            cached_project = proj;
 
-            var proj = prj.Object as VCProject;
             if (proj == null) { VS.MessageBox.ShowErrorAsync("IWYU Error:", "The project is not a Visual Studio C/C++ type.").FireAndForget(); return null; }
 
             var cfg = proj.ActiveConfiguration;

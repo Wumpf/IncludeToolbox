@@ -94,18 +94,7 @@ namespace IncludeToolbox.Commands
             return true;
         }
 
-        async Task SaveAllDocumentsAsync()
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            try
-            {
-                VCUtil.GetDTE().Documents.SaveAll();
-            }
-            catch (Exception e)
-            {
-                Output.WriteLineAsync($"Failed to get save all documents: {e.Message}").FireAndForget();
-            }
-        }
+        
 
         public void MoveHeader(DocumentView view)
         {
@@ -147,7 +136,7 @@ namespace IncludeToolbox.Commands
             if (settings.Dirty) proc.BuildCommandLine(settings);
             if (settings.IgnoreHeader) MoveHeader(doc);
 
-            await SaveAllDocumentsAsync();
+            await VCUtil.SaveAllDocumentsAsync();
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             dlg.CreateInstance(out IVsThreadedWaitDialog2 xdialog);

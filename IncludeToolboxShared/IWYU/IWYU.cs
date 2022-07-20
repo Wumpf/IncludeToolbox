@@ -70,9 +70,9 @@ namespace IncludeToolbox.IncludeWhatYouUse
             settings.ClearFlag();
         }
 
+        public string CommandLine { get => command_line; set => command_line = value; }
 
-
-        async Task Format(DocumentView doc)
+        async Task FormatAsync(DocumentView doc)
         {
             using var xedit = doc.TextBuffer.CreateEdit();
             var text = xedit.Snapshot.GetText();
@@ -116,15 +116,30 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 }
                 edit.Apply();
 
-                if (settings.Format) await Format(doc);
+                if (settings.Format) await FormatAsync(doc);
                 output = part.Substring(endp);
             }
         }
 
-        public async Task<bool> StartAsync(string file, bool rebuild)
+        public async Task<bool> StartAsync(string file, Project proj, bool rebuild, string additional = "")
+        {
+            var cmd = await VCUtil.GetCommandLineAsync(rebuild, proj);
+            if (!string.IsNullOrEmpty(support_path))
+                cmd += ' ' + additional;
+            return StartImpl(file, rebuild, cmd);
+        }
+
+        public async Task<bool> StartAsync(string file, bool rebuild, string additional = "")
+        {
+            var cmd = await VCUtil.GetCommandLineAsync(rebuild);
+            if (!string.IsNullOrEmpty(support_path))
+                cmd += ' ' + additional;
+            return StartImpl(file, rebuild, cmd);
+        }
+
+        bool StartImpl(string file, bool rebuild, string cmd)
         {
             output = "";
-            var cmd = await VCUtil.GetCommandLineAsync(rebuild);
             if (cmd == null) return false;
             if (cmd != "")
             {

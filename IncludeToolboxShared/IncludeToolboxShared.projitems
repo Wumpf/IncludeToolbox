@@ -9,6 +9,7 @@
     <Import_RootNamespace>IncludeToolboxShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\RunIWYUProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\FormatIncludes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\IncludeGraphToolWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\RunIWYU.cs" />
