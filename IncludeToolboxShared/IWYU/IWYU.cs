@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
@@ -70,7 +71,24 @@ namespace IncludeToolbox.IncludeWhatYouUse
             settings.ClearFlag();
         }
 
-        public string CommandLine { get => command_line; set => command_line = value; }
+        static public void MoveHeader(DocumentView view)
+        {
+            var buf = view.TextBuffer;
+            var str = buf.CurrentSnapshot.GetText();
+            int begin = str.IndexOf("#include ");
+            int end = str.LastIndexOf("#include ");
+            end = str.IndexOf('\n', end);
+
+
+            Regex regex = new($"#include\\s[<\"]([\\w\\\\\\/\\.]+{Path.GetFileNameWithoutExtension(view.FilePath)}.h(?:pp|xx)?)[>\"]");
+            var match = regex.Match(str, begin, end - begin);
+            if (!match.Success) return;
+            var edit = buf.CreateEdit();
+            _ = edit.Delete(new(match.Index, match.Length));
+
+            edit.Insert(begin, match.Value + IWYUApply.GetLineBreak(edit));
+            edit.Apply();
+        }
 
         async Task FormatAsync(DocumentView doc)
         {
@@ -124,15 +142,16 @@ namespace IncludeToolbox.IncludeWhatYouUse
         public async Task<bool> StartAsync(string file, Project proj, bool rebuild, string additional = "")
         {
             var cmd = await VCUtil.GetCommandLineAsync(rebuild, proj);
-            if (!string.IsNullOrEmpty(support_path))
+            if (!string.IsNullOrEmpty(cmd))
                 cmd += ' ' + additional;
             return StartImpl(file, rebuild, cmd);
         }
 
+
         public async Task<bool> StartAsync(string file, bool rebuild, string additional = "")
         {
             var cmd = await VCUtil.GetCommandLineAsync(rebuild);
-            if (!string.IsNullOrEmpty(support_path))
+            if (!string.IsNullOrEmpty(cmd))
                 cmd += ' ' + additional;
             return StartImpl(file, rebuild, cmd);
         }

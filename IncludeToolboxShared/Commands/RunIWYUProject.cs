@@ -17,37 +17,49 @@ namespace IncludeToolbox.Commands
     internal sealed class RunIWYUProject : BaseCommand<RunIWYUProject>
     {
         static readonly Regex extension = new("^\\.[ch](?:pp|xx)?$");
+        IWYU task = new();
+        CancelCallback cancelCallback;
 
+        protected override Task InitializeCompletedAsync()
+        {
+            cancelCallback = new(() => { task.CancelAsync().FireAndForget(); });
+            return Task.CompletedTask;
+        }
+
+
+        async Task CheckAsync()
+        {
+            Command.Visible = false;
+            var items = await VS.Solutions.GetActiveItemsAsync();
+
+            HashSet<Project> set = new();
+
+            bool b = items.All(s =>
+            {
+                if (s.Type == SolutionItemType.Project)
+                { _ = set.Add((Project)s); return true; }
+                if (s.Type != SolutionItemType.PhysicalFile) return false;
+                var parent = s.FindParent(SolutionItemType.Project);
+                if (parent == null) return false;
+                _ = set.Add((Project)parent);
+                return extension.IsMatch(Path.GetExtension(s.Name));
+            });
+
+            if (!b) return;
+
+            foreach (var item in set)
+            {
+                if (await item.ToVCProjectAsync() == null)
+                    return;
+            }
+            Command.Visible = true;
+        }
+
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD002:Avoid problematic synchronous waits", Justification = "Has to be synchronous")]
         protected override void BeforeQueryStatus(EventArgs e)
         {
-            var lv = async () =>
-            {
-                Command.Visible = false;
-                var items = await VS.Solutions.GetActiveItemsAsync();
-
-                HashSet<Project> set = new();
-
-                bool b = items.All(s =>
-                {
-                    if (s.Type == SolutionItemType.Project)
-                    { _ = set.Add((Project)s); return true; }
-                    if (s.Type != SolutionItemType.PhysicalFile) return false;
-                    var parent = s.FindParent(SolutionItemType.Project);
-                    if (parent == null) return false;
-                    _ = set.Add((Project)parent);
-                    return extension.IsMatch(Path.GetExtension(s.Name));
-                });
-
-                if (!b) return;
-
-                foreach (var item in set)
-                {
-                    if (await item.ToVCProjectAsync() == null)
-                        return;
-                }
-                Command.Visible = true;
-            };
-            lv().Wait();
+            CheckAsync().Wait();
         }
 
         Dictionary<string, KeyValuePair<Project, List<string>>> SetTasks(IEnumerable<SolutionItem> items)
@@ -67,16 +79,29 @@ namespace IncludeToolbox.Commands
             return set;
         }
 
+        async Task MoveHeaderImplAsync(string file)
+        {
+            IWYU.MoveHeader(await VS.Documents.OpenAsync(file));
+        }
+
+        async Task MoveHeadersAsync(Dictionary<string, KeyValuePair<Project, List<string>>> dict)
+        {
+            List<Task> tasks = new();
+            foreach (var v in dict)
+                for (int c = 0; c < v.Value.Value.Count; c++)
+                    tasks.Add(MoveHeaderImplAsync(v.Value.Value[c]));
+
+            await Task.WhenAll(tasks);
+            await VCUtil.SaveAllDocumentsAsync();
+        }
+
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
             var set = SetTasks(await VS.Solutions.GetActiveItemsAsync());
             var settings = await IWYUOptions.GetLiveInstanceAsync();
 
-            IWYU task = new();
-            task.BuildCommandLine(settings);
-            await VCUtil.SaveAllDocumentsAsync();
-            CancelCallback cancelCallback = new(() => { task.CancelAsync().FireAndForget(); });
+            if (settings.Dirty) task.BuildCommandLine(settings);
 
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -84,9 +109,13 @@ namespace IncludeToolbox.Commands
             _ = dlg.CreateInstance(out IVsThreadedWaitDialog2 xdialog);
             IVsThreadedWaitDialog4 dialog = xdialog as IVsThreadedWaitDialog4;
 
-            dialog.StartWaitDialogWithCallback("Include Minimizer", "Running include-what-you-use", null, null, "Running include-what-you-use", true, 0, true, set.Count, 0, cancelCallback);
+            await MoveHeadersAsync(set);
+
             try
             {
+                dialog.StartWaitDialogWithCallback("Include Minimizer", "Running include-what-you-use", null, null, "Running include-what-you-use", true, 0, true, set.Count, 0, cancelCallback);
+
+                // needs parallelization, but cancellation is doomed
                 foreach (var v in set)
                 {
                     for (int c = 0; c < v.Value.Value.Count;)
@@ -99,6 +128,8 @@ namespace IncludeToolbox.Commands
                                               v.Value.Value.Count,
                                               false,
                                               out var cancelled);
+
+
                         bool result = await task.StartAsync(f, v.Value.Key, settings.AlwaysRebuid); // process cannot be rerun
 
                         if (cancelled || result == false) return;

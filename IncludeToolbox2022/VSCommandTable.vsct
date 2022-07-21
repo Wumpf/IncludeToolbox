@@ -25,6 +25,7 @@
 				<Icon guid="MonikersGuid" id="hash" />
 				<CommandFlag>IconIsMoniker</CommandFlag>
 				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
 				<Strings>
 					<ButtonText>Run Include-What-You-Use</ButtonText>
 					<LocCanonicalName>.IncludeToolbox.IncludeWhatYouUseId</LocCanonicalName>

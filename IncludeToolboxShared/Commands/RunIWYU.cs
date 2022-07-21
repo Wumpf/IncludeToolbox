@@ -94,26 +94,7 @@ namespace IncludeToolbox.Commands
             return true;
         }
 
-        
 
-        public void MoveHeader(DocumentView view)
-        {
-            var buf = view.TextBuffer;
-            var str = buf.CurrentSnapshot.GetText();
-            int begin = str.IndexOf("#include ");
-            int end = str.LastIndexOf("#include ");
-            end = str.IndexOf('\n', end);
-
-
-            Regex regex = new($"#include\\s[<\"]([\\w\\\\\\/\\.]+{Path.GetFileNameWithoutExtension(view.FilePath)}.h(?:pp|xx)?)[>\"]");
-            var match = regex.Match(str, begin, end - begin);
-            if (!match.Success) return;
-            var edit = buf.CreateEdit();
-            _ = edit.Delete(new(match.Index, match.Length));
-
-            edit.Insert(begin, match.Value + IWYUApply.GetLineBreak(edit));
-            edit.Apply();
-        }
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
@@ -134,7 +115,7 @@ namespace IncludeToolbox.Commands
 
 
             if (settings.Dirty) proc.BuildCommandLine(settings);
-            if (settings.IgnoreHeader) MoveHeader(doc);
+            if (settings.IgnoreHeader) IWYU.MoveHeader(doc);
 
             await VCUtil.SaveAllDocumentsAsync();
 
