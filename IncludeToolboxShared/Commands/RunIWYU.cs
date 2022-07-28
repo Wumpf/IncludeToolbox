@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
@@ -38,6 +37,7 @@ namespace IncludeToolbox.Commands
 
         protected override async Task InitializeCompletedAsync()
         {
+            Command.Supported = false;
             cancelCallback = new(delegate { proc.CancelAsync().FireAndForget(); });
             var settings = await IWYUOptions.GetLiveInstanceAsync();
             if (settings.Executable == IWYUDownload.GetDefaultExecutablePath())

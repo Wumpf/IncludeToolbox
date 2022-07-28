@@ -52,11 +52,9 @@ namespace IncludeToolbox.Commands
             string formatedText = Formatter.IncludeFormatter.FormatIncludes(selection_span.GetText(), doc.FilePath, include_directories, settings);
 
             // Overwrite.
-            using (var edit = doc.TextBuffer.CreateEdit())
-            {
-                edit.Replace(selection_span, formatedText);
-                edit.Apply();
-            }
+            using var edit = doc.TextBuffer.CreateEdit();
+            edit.Replace(selection_span, formatedText);
+            edit.Apply();
         }
     }
 }

@@ -9,6 +9,12 @@ namespace IncludeToolbox.Commands
     {
         TrialAndErrorRemoval impl = new();
 
+        protected override Task InitializeCompletedAsync()
+        {
+            Command.Supported = false;
+            return Task.CompletedTask;
+        }
+
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
             var document = VCUtil.GetDTE().ActiveDocument;
