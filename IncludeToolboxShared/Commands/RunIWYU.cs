@@ -30,69 +30,18 @@ namespace IncludeToolbox.Commands
     [Command(PackageIds.IncludeWhatYouUseId)]
     internal sealed class RunIWYU : BaseCommand<RunIWYU>
     {
-        bool download_required = false;
         IWYU proc = new();
         CancelCallback cancelCallback;
 
 
-        protected override async Task InitializeCompletedAsync()
+        protected override Task InitializeCompletedAsync()
         {
             Command.Supported = false;
             cancelCallback = new(delegate { proc.CancelAsync().FireAndForget(); });
-            var settings = await IWYUOptions.GetLiveInstanceAsync();
-            if (settings.Executable == IWYUDownload.GetDefaultExecutablePath())
-                download_required = await IWYUDownload.IsNewerVersionAvailableOnlineAsync();
+            return base.InitializeCompletedAsync();
         }
 
-        private async Task<bool> DownloadAsync(IVsThreadedWaitDialogFactory dialogFactory)
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            if (!await VS.MessageBox.ShowConfirmAsync($"Can't locate include-what-you-use. Do you want to download it from '{IWYUDownload.DisplayRepositorURL}'?"))
-                return false;
 
-            var downloader = new IWYUDownload();
-
-            dialogFactory.CreateInstance(out IVsThreadedWaitDialog2 xdialog);
-            IVsThreadedWaitDialog4 dialog = xdialog as IVsThreadedWaitDialog4;
-
-            downloader.OnProgress += (string section, string status, float percentage) =>
-                {
-                    ThreadHelper.ThrowIfNotOnUIThread();
-
-                    dialog.UpdateProgress(
-                    szUpdatedWaitMessage: section,
-                    szProgressText: status,
-                    szStatusBarText: $"Downloading include-what-you-use - {section} - {status}",
-                    iCurrentStep: (int)(percentage * 100),
-                    iTotalSteps: 100,
-                    fDisableCancel: false,
-                    pfCanceled: out bool canceled);
-                };
-
-            dialog.StartWaitDialogWithCallback(
-                szWaitCaption: "Include Toolbox - Downloading include-what-you-use",
-                szWaitMessage: "", // comes in later.
-                szProgressText: null,
-                varStatusBmpAnim: null,
-                szStatusBarText: "Downloading include-what-you-use",
-                fIsCancelable: true,
-                iDelayToShowDialog: 0,
-                fShowProgress: true,
-                iTotalSteps: 100,
-                iCurrentStep: 0,
-                new CancelCallback(() => { downloader.Cancel(); }));
-
-            await downloader.DownloadIWYUAsync();
-
-            if (dialog.EndWaitDialog()) return false;
-
-            var settings = await IWYUOptions.GetLiveInstanceAsync();
-            settings.Executable = IWYUDownload.GetDefaultExecutablePath();
-
-            await settings.SaveAsync();
-
-            return true;
-        }
 
 
 
@@ -102,8 +51,8 @@ namespace IncludeToolbox.Commands
             var settings = await IWYUOptions.GetLiveInstanceAsync();
             var dlg = (IVsThreadedWaitDialogFactory)await VS.Services.GetThreadedWaitDialogAsync();
 
-            if ((settings.Executable == "" || !File.Exists(settings.Executable) || download_required)
-                && !await DownloadAsync(dlg))
+            if ((settings.Executable == "" || !File.Exists(settings.Executable) || await settings.DownloadRequiredAsync())
+                && !await IWYUDownload.DownloadAsync(dlg, settings))
             {
                 VS.MessageBox.ShowErrorAsync("IWYU Error", "No executable found, operation cannot be completed").FireAndForget();
                 return;

@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Community.VisualStudio.Toolkit;
+using IncludeToolbox.Commands;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -46,7 +50,54 @@ namespace IncludeToolbox.IncludeWhatYouUse
 
 
 
+        public static  async Task<bool> DownloadAsync(IVsThreadedWaitDialogFactory dialogFactory, IWYUOptions settings)
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            if (!await VS.MessageBox.ShowConfirmAsync($"Can't locate include-what-you-use. Do you want to download it from '{IWYUDownload.DisplayRepositorURL}'?"))
+                return false;
 
+            var downloader = new IWYUDownload();
+
+            dialogFactory.CreateInstance(out IVsThreadedWaitDialog2 xdialog);
+            IVsThreadedWaitDialog4 dialog = xdialog as IVsThreadedWaitDialog4;
+
+            downloader.OnProgress += (string section, string status, float percentage) =>
+            {
+                ThreadHelper.ThrowIfNotOnUIThread();
+
+                dialog.UpdateProgress(
+                szUpdatedWaitMessage: section,
+                szProgressText: status,
+                szStatusBarText: $"Downloading include-what-you-use - {section} - {status}",
+                iCurrentStep: (int)(percentage * 100),
+                iTotalSteps: 100,
+                fDisableCancel: false,
+                pfCanceled: out bool canceled);
+            };
+
+            dialog.StartWaitDialogWithCallback(
+                szWaitCaption: "Include Toolbox - Downloading include-what-you-use",
+                szWaitMessage: "", // comes in later.
+                szProgressText: null,
+                varStatusBmpAnim: null,
+                szStatusBarText: "Downloading include-what-you-use",
+                fIsCancelable: true,
+                iDelayToShowDialog: 0,
+                fShowProgress: true,
+                iTotalSteps: 100,
+                iCurrentStep: 0,
+                new CancelCallback(() => { downloader.Cancel(); }));
+
+            await downloader.DownloadIWYUAsync();
+
+            if (dialog.EndWaitDialog()) return false;
+            settings.Executable = GetDefaultExecutablePath();
+
+            settings.Downloaded();
+            await settings.SaveAsync();
+
+            return true;
+        }
 
         private static async Task<string> GetVersionOnlineAsync()
         {

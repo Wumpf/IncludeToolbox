@@ -101,11 +101,18 @@ namespace IncludeToolbox.Commands
             var set = SetTasks(await VS.Solutions.GetActiveItemsAsync());
             var settings = await IWYUOptions.GetLiveInstanceAsync();
 
-            if (settings.GetDirty()) task.BuildCommandLine(settings);
-
-
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             var dlg = (IVsThreadedWaitDialogFactory)await VS.Services.GetThreadedWaitDialogAsync();
+
+            if ((settings.Executable == "" || !File.Exists(settings.Executable) || await settings.DownloadRequiredAsync())
+                && !await IWYUDownload.DownloadAsync(dlg, settings))
+            {
+                VS.MessageBox.ShowErrorAsync("IWYU Error", "No executable found, operation cannot be completed").FireAndForget();
+                return;
+            }
+
+            if (settings.GetDirty()) task.BuildCommandLine(settings);
+
             _ = dlg.CreateInstance(out IVsThreadedWaitDialog2 xdialog);
             IVsThreadedWaitDialog4 dialog = xdialog as IVsThreadedWaitDialog4;
 

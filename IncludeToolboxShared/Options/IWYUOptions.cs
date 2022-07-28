@@ -1,7 +1,10 @@
 ﻿using Community.VisualStudio.Toolkit;
+using IncludeToolbox.Commands;
+using IncludeToolbox.IncludeWhatYouUse;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace IncludeToolbox
 {
@@ -13,10 +16,12 @@ namespace IncludeToolbox
 
     public class IWYUOptions : BaseOptionModel<IWYUOptions>
     {
+
         string exe = "";
         Comment comm = Comment.Yes;
         Substitution subs = Substitution.Cheap;
         uint verbose = 2;
+        bool? download_required = null;
         bool pch = false;
         bool nodefault = false;
         bool transitives = false;
@@ -37,6 +42,18 @@ namespace IncludeToolbox
         private void SetDirty(bool value)
         {
             dirty = value;
+        }
+
+        public async Task<bool> DownloadRequiredAsync()
+        {
+            if (download_required != null) return download_required.Value;
+            if (Executable == IWYUDownload.GetDefaultExecutablePath())
+                download_required = await IWYUDownload.IsNewerVersionAvailableOnlineAsync();
+            return download_required.Value;
+        }
+        public void Downloaded()
+        {
+            download_required = false;
         }
 
         [Category("General")]
