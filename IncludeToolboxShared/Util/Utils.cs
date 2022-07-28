@@ -21,6 +21,9 @@ namespace IncludeToolbox
         {
             Uri rootUri, targetUri;
 
+            if (!absoluteRoot.EndsWith(Path.DirectorySeparatorChar.ToString()))
+                absoluteRoot += Path.DirectorySeparatorChar;
+
             try
             {
                 rootUri = new Uri(absoluteRoot);

@@ -9,6 +9,8 @@
     <Import_RootNamespace>IncludeToolboxShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\GenMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\RemoveMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\RunIWYUProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\FormatIncludes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\IncludeGraphToolWindow.cs" />
@@ -23,8 +25,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUDownload.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\FormatterOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IWYUOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\MapperOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\TrialAndErrorRemovalOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ViewerOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\MapManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Output.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\RegexUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\TrialAndErrorRemoval.cs" />

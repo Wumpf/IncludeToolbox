@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static Microsoft.VisualStudio.VSConstants;
 using Project = Community.VisualStudio.Toolkit.Project;
+using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox
 {

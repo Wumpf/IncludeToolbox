@@ -15,6 +15,7 @@ namespace IncludeToolbox
     [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionOpening_string, PackageAutoLoadFlags.BackgroundLoad)]
     [ProvideOptionPage(typeof(OptionsProvider.FormatterOptionsPage), "Include Toolbox", "Include Format", 0, 0, true, SupportsProfiles = true)]
     [ProvideOptionPage(typeof(OptionsProvider.TrialAndErrorRemovalOptionsPage), "Include Toolbox", "Trial and Error", 0, 0, true, SupportsProfiles = true)]
+    [ProvideOptionPage(typeof(OptionsProvider.MapperOptionsPage), "Include Toolbox", "Mapper", 0, 0, true, SupportsProfiles = true)]
     [ProvideOptionPage(typeof(OptionsProvider.IWYUOptionsPage), "Include Toolbox", "Include-What-You-Use", 0, 0, true, SupportsProfiles = true)]
     [ProvideUIContextRule(PackageGuids.GOnlyVCString, "UIOnlyVC",
     expression: "one & two",
@@ -25,6 +26,11 @@ namespace IncludeToolbox
     expression: "one & two",
     termNames: new[] { "one", "two" },
     termValues: new[] { @"ActiveProjectCapability:VisualC", @"HierSingleSelectionName:.(cpp|c|cxx)$" }
+)]    
+    [ProvideUIContextRule(PackageGuids.GHeaderOnlyString, "UIOnlyCpp",
+    expression: "one & two",
+    termNames: new[] { "one", "two" },
+    termValues: new[] { @"ActiveProjectCapability:VisualC", @"HierSingleSelectionName:.(h|hpp|hxx|inl)$" }
 )]
     public sealed class IncludeToolboxPackage : ToolkitPackage
     {

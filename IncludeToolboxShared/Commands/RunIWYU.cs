@@ -114,7 +114,7 @@ namespace IncludeToolbox.Commands
             if (doc == null) return;
 
 
-            if (settings.Dirty) proc.BuildCommandLine(settings);
+            if (settings.GetDirty()) proc.BuildCommandLine(settings);
             if (settings.IgnoreHeader) IWYU.MoveHeader(doc);
 
             await VCUtil.SaveAllDocumentsAsync();

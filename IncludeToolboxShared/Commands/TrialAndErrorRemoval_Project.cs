@@ -4,11 +4,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Runtime;
 using System.Threading.Tasks;
-using static IncludeToolbox.OptionsProvider;
-using System.Windows.Forms.Design;
 using Task = System.Threading.Tasks.Task;
 using Project = EnvDTE.Project;
 

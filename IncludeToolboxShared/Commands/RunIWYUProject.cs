@@ -101,7 +101,7 @@ namespace IncludeToolbox.Commands
             var set = SetTasks(await VS.Solutions.GetActiveItemsAsync());
             var settings = await IWYUOptions.GetLiveInstanceAsync();
 
-            if (settings.Dirty) task.BuildCommandLine(settings);
+            if (settings.GetDirty()) task.BuildCommandLine(settings);
 
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
