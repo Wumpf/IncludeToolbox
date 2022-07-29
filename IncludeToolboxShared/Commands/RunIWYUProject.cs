@@ -20,10 +20,12 @@ namespace IncludeToolbox.Commands
         IWYU task = new();
         CancelCallback cancelCallback;
 
-        protected override Task InitializeCompletedAsync()
+        protected override async Task InitializeCompletedAsync()
         {
             cancelCallback = new(() => { task.CancelAsync().FireAndForget(); });
-            return Task.CompletedTask;
+            var settings = await IWYUOptions.GetLiveInstanceAsync();
+            settings.OnChange += task.BuildCommandLine;
+            task.BuildCommandLine(settings);
         }
 
 
@@ -111,12 +113,11 @@ namespace IncludeToolbox.Commands
                 return;
             }
 
-            if (settings.GetDirty()) task.BuildCommandLine(settings);
-
             _ = dlg.CreateInstance(out IVsThreadedWaitDialog2 xdialog);
             IVsThreadedWaitDialog4 dialog = xdialog as IVsThreadedWaitDialog4;
 
-            await MoveHeadersAsync(set);
+            if(settings.IgnoreHeader)
+                await MoveHeadersAsync(set);
 
             try
             {

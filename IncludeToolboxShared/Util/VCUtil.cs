@@ -24,6 +24,8 @@ namespace IncludeToolbox
     public class VCUtil
     {
         static VCProject cached_project;
+        static string command_line = "";
+
         public static EnvDTE80.DTE2 GetDTE()
         {
             var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as EnvDTE80.DTE2;
@@ -78,7 +80,7 @@ namespace IncludeToolbox
             var proj = await xproj.ToVCProjectAsync();
             
             if (cached_project == proj && !rebuild)
-                return "";
+                return command_line;
 
             cached_project = proj;
 
@@ -117,7 +119,7 @@ namespace IncludeToolbox
             var def_string = string.Join(" ", defs);
 
 
-            return inc_string + ' ' + def_string + ' ' + standard;
+            return command_line = inc_string + ' ' + def_string + ' ' + standard;
         }
     }
 }

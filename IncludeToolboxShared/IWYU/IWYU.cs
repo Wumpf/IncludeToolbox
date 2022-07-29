@@ -38,6 +38,10 @@ namespace IncludeToolbox.IncludeWhatYouUse
             {
                 output += args.Data + "\n";
             };
+
+            // initialize temp files (can be multithreaded, hence instance based)
+            support_cpp_path = Path.ChangeExtension(Path.GetTempFileName(), ".cpp");
+            support_path = Path.GetTempFileName();
         }
 
         public void BuildCommandLine(IWYUOptions settings)
@@ -68,7 +72,6 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 command_line += " " + string.Join(" ", settings.ClangOptions);
             if (settings.Options != null && settings.Options.Count() != 0)
                 command_line += " " + string.Join(" ", settings.Options.Select(x => " -Xiwyu " + x));
-            settings.ClearFlag();
         }
 
         static public void MoveHeader(DocumentView view)
@@ -121,8 +124,8 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 {
                     int endl = part.IndexOf("\n");
                     string result = part.Substring(endl, endp - endl);
-                    IWYUApply.ApplyCheap(edit, 
-                        result, 
+                    IWYUApply.ApplyCheap(edit,
+                        result,
                         settings.Comms != Comment.No);
                 }
                 else
@@ -139,41 +142,43 @@ namespace IncludeToolbox.IncludeWhatYouUse
             }
         }
 
+
         public async Task<bool> StartAsync(string file, Project proj, bool rebuild, string additional = "")
         {
             var cmd = await VCUtil.GetCommandLineAsync(rebuild, proj);
-            if (!string.IsNullOrEmpty(cmd))
-                cmd += ' ' + additional;
-            return StartImpl(file, rebuild, cmd);
+            if (string.IsNullOrEmpty(cmd))
+            {
+                Output.WriteLineAsync("Failed to gather command line for c++ project").FireAndForget();
+                return false;
+            }
+            cmd += ' ' + additional;
+            return StartImpl(file, cmd);
         }
-
-
         public async Task<bool> StartAsync(string file, bool rebuild, string additional = "")
         {
             var cmd = await VCUtil.GetCommandLineAsync(rebuild);
-            if (!string.IsNullOrEmpty(cmd))
-                cmd += ' ' + additional;
-            return StartImpl(file, rebuild, cmd);
+            if (string.IsNullOrEmpty(cmd))
+            {
+                Output.WriteLineAsync("Failed to gather command line for c++ project").FireAndForget();
+                return false;
+            }
+            cmd += ' ' + additional;
+            return StartImpl(file, cmd);
         }
 
-        bool StartImpl(string file, bool rebuild, string cmd)
+        bool StartImpl(string file, string cmd)
         {
             output = "";
-            if (cmd == null) return false;
-            if (cmd != "")
-            {
-                // cache file for reuse
-                support_path = string.IsNullOrEmpty(support_path) ? Path.GetTempFileName() : support_path;
-                File.WriteAllText(support_path, cmd);
-            }
+            File.WriteAllText(support_path, cmd);
+
             var ext = Path.GetExtension(file);
             if (ext == ".h" || ext == ".hpp")
             {
-                if (support_cpp_path == "") { support_cpp_path = Path.ChangeExtension(Path.GetTempFileName(), ".cpp"); }
                 File.WriteAllText(support_cpp_path, "#include \"" + file + "\"");
                 file = " -Xiwyu --check_also=" + file;
                 file += " \"" + support_cpp_path.Replace("\\", "\\\\") + "\"";
             }
+
             process.StartInfo.Arguments = $"{command_line} \"@{support_path}\" {file}";
 
             Output.WriteLineAsync(string.Format("Running command '{0}' with following arguments:\n{1}\n\n", process.StartInfo.FileName, process.StartInfo.Arguments)).FireAndForget();
@@ -192,6 +197,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
         public async Task CancelAsync()
         {
             await Task.Run(delegate { process.Kill(); });
+            Output.WriteLineAsync($"IWYU Process {process.ProcessName} was cancelled.").FireAndForget();
         }
     }
 }

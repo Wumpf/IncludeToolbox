@@ -34,11 +34,13 @@ namespace IncludeToolbox.Commands
         CancelCallback cancelCallback;
 
 
-        protected override Task InitializeCompletedAsync()
+        protected override async Task InitializeCompletedAsync()
         {
             Command.Supported = false;
             cancelCallback = new(delegate { proc.CancelAsync().FireAndForget(); });
-            return base.InitializeCompletedAsync();
+            var settings = await IWYUOptions.GetLiveInstanceAsync();
+            settings.OnChange += proc.BuildCommandLine;
+            proc.BuildCommandLine(settings);
         }
 
 
@@ -61,9 +63,6 @@ namespace IncludeToolbox.Commands
 
             var doc = await VS.Documents.GetActiveDocumentViewAsync();
             if (doc == null) return;
-
-
-            if (settings.GetDirty()) proc.BuildCommandLine(settings);
             if (settings.IgnoreHeader) IWYU.MoveHeader(doc);
 
             await VCUtil.SaveAllDocumentsAsync();
