@@ -19,7 +19,7 @@ namespace IncludeToolbox
     {
         string exe = "";
         Comment comm = Comment.Yes;
-        Substitution subs = Substitution.Cheap;
+        Substitution subs = Substitution.Precise;
         uint verbose = 2;
         bool? download_required = null;
         bool pch = false;
@@ -122,10 +122,22 @@ namespace IncludeToolbox
         public bool IgnoreHeader { get { return header; } set { header = value; OnChangeEvent(); } }
         
         [Category("Options")]
-        [DisplayName("Format After")]
+        [DisplayName("Format Includes")]
         [Description("Uses formatting tool after results of IWYU are applied.")]
         [DefaultValue(false)]
         public bool Format { get => format; set { format = value; OnChangeEvent(); } }
+
+        [Category("Options")]
+        [DisplayName("Format Document")]
+        [Description("Uses formatting command (Ctrl+K D) after results of IWYU are applied.")]
+        [DefaultValue(true)]
+        public bool FormatDoc { get; set; } = true;
+        
+        [Category("Options")]
+        [DisplayName("Move Forward Declarations")]
+        [Description("Moves all forward declarations present in the document. !Does not work with Cheap IWYU mode.")]
+        [DefaultValue(true)]
+        public bool MoveDecls { get; set; } = true;
 
         public async Task<bool> DownloadRequiredAsync()
         {

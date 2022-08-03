@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
+using File = System.IO.File;
 using Task = System.Threading.Tasks.Task;
 
 
@@ -44,9 +46,6 @@ namespace IncludeToolbox.Commands
         }
 
 
-
-
-
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -60,12 +59,15 @@ namespace IncludeToolbox.Commands
                 return;
             }
 
+            await VS.Commands.ExecuteAsync(KnownCommands.File_SaveSelectedItems);
 
             var doc = await VS.Documents.GetActiveDocumentViewAsync();
             if (doc == null) return;
             if (settings.IgnoreHeader) IWYU.MoveHeader(doc);
-
-            await VCUtil.SaveAllDocumentsAsync();
+            var buf = doc.TextBuffer;
+            var str = buf.CurrentSnapshot.GetText();
+            
+            var x = Parser.ParseAsync(str);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             dlg.CreateInstance(out IVsThreadedWaitDialog2 xdialog);
@@ -85,7 +87,10 @@ namespace IncludeToolbox.Commands
 
             if (dialog.EndWaitDialog() || result == false) return;
 
-            await proc.ApplyAsync(settings);
+            if (settings.Sub == Substitution.Precise)
+                await IWYUApply.ApplyPreciseAsync(settings, await x, proc.ProcOutput, VCUtil.Std);
+            else
+                await IWYUApply.ApplyAsync(settings, proc.ProcOutput);
         }
     }
 }

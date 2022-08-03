@@ -28,9 +28,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\MapperOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\TrialAndErrorRemovalOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ViewerOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\Lexer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\MapManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\NamespaceTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Output.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\Parser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\RegexUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\Standard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\TrialAndErrorRemoval.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\VCHelper.cs" />

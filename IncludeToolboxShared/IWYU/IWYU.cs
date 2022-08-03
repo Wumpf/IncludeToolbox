@@ -1,6 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -19,8 +18,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
         string support_path = "";
         string support_cpp_path = "";
 
-        static readonly string match = "The full include-list for ";
-
+        public string ProcOutput { get =>output; }
 
         public IWYU()
         {
@@ -93,57 +91,9 @@ namespace IncludeToolbox.IncludeWhatYouUse
             edit.Apply();
         }
 
-        async Task FormatAsync(DocumentView doc)
-        {
-            using var xedit = doc.TextBuffer.CreateEdit();
-            var text = xedit.Snapshot.GetText();
-            var span = IWYUApply.GetIncludeSpan(text);
-            var result = await IWYUApply.PreformatAsync(new SnapshotSpan(xedit.Snapshot, span).GetText(), doc.FilePath);
-            xedit.Replace(span, result);
-            xedit.Apply();
-        }
-        public async Task ApplyAsync(IWYUOptions settings)
-        {
-            if (output == "") return;
-
-            while (true)
-            {
-                int pos = output.IndexOf(match);
-                if (pos == -1) return;
-
-                pos += match.Length;
-                string part = output.Substring(pos);
-
-                int endp = part.IndexOf("---");
-                string path = part.Substring(0, part.IndexOf(':', 3));
-                var doc = await VS.Documents.OpenAsync(path);
-                using var edit = doc.TextBuffer.CreateEdit();
 
 
-                if (settings.Sub == Substitution.Cheap)
-                {
-                    int endl = part.IndexOf("\n");
-                    string result = part.Substring(endl, endp - endl);
-                    IWYUApply.ApplyCheap(edit,
-                        result,
-                        settings.Comms != Comment.No);
-                }
-                else
-                {
-                    var tasks = output.Substring(0, pos)
-                    .Split('\n').Select(l => l.Trim());
-
-                    IWYUApply.ParseTasks(tasks, settings.Comms != Comment.No).Apply(edit);
-                }
-                edit.Apply();
-
-                if (settings.Format) await FormatAsync(doc);
-                output = part.Substring(endp);
-            }
-        }
-
-
-        public async Task<bool> StartAsync(string file, Project proj, bool rebuild, string additional = "")
+        public async Task<bool> StartAsync(string file, Project proj, bool rebuild)
         {
             var cmd = await VCUtil.GetCommandLineAsync(rebuild, proj);
             if (string.IsNullOrEmpty(cmd))
@@ -151,10 +101,9 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 Output.WriteLineAsync("Failed to gather command line for c++ project").FireAndForget();
                 return false;
             }
-            cmd += ' ' + additional;
             return StartImpl(file, cmd);
         }
-        public async Task<bool> StartAsync(string file, bool rebuild, string additional = "")
+        public async Task<bool> StartAsync(string file, bool rebuild)
         {
             var cmd = await VCUtil.GetCommandLineAsync(rebuild);
             if (string.IsNullOrEmpty(cmd))
@@ -162,7 +111,6 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 Output.WriteLineAsync("Failed to gather command line for c++ project").FireAndForget();
                 return false;
             }
-            cmd += ' ' + additional;
             return StartImpl(file, cmd);
         }
 

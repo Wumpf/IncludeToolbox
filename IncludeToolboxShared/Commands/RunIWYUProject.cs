@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using File = System.IO.File;
 using Task = System.Threading.Tasks.Task;
 
 
@@ -81,22 +82,6 @@ namespace IncludeToolbox.Commands
             return set;
         }
 
-        async Task MoveHeaderImplAsync(string file)
-        {
-            IWYU.MoveHeader(await VS.Documents.OpenAsync(file));
-        }
-
-        async Task MoveHeadersAsync(Dictionary<string, KeyValuePair<Project, List<string>>> dict)
-        {
-            List<Task> tasks = new();
-            foreach (var v in dict)
-                for (int c = 0; c < v.Value.Value.Count; c++)
-                    tasks.Add(MoveHeaderImplAsync(v.Value.Value[c]));
-
-            await Task.WhenAll(tasks);
-            await VCUtil.SaveAllDocumentsAsync();
-        }
-
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
@@ -116,9 +101,6 @@ namespace IncludeToolbox.Commands
             _ = dlg.CreateInstance(out IVsThreadedWaitDialog2 xdialog);
             IVsThreadedWaitDialog4 dialog = xdialog as IVsThreadedWaitDialog4;
 
-            if(settings.IgnoreHeader)
-                await MoveHeadersAsync(set);
-
             try
             {
                 dialog.StartWaitDialogWithCallback("Include Minimizer", "Running include-what-you-use", null, null, "Running include-what-you-use", true, 0, true, set.Count, 0, cancelCallback);
@@ -135,14 +117,25 @@ namespace IncludeToolbox.Commands
                                               ++c,
                                               v.Value.Value.Count,
                                               false,
-                                              out var cancelled);
+                        out var cancelled);
 
+                        var doc = await VS.Documents.OpenAsync(f);
+                        if (doc == null) return;
+                        if (settings.IgnoreHeader) IWYU.MoveHeader(doc);
+                        var buf = doc.TextBuffer;
+                        var str = buf.CurrentSnapshot.GetText();
+                        await VS.Commands.ExecuteAsync(KnownCommands.File_SaveAll);
 
-                        bool result = await task.StartAsync(f, v.Value.Key, settings.AlwaysRebuid); // process cannot be rerun
+                        var x = Parser.ParseAsync(str);
+
+                        bool result = await task.StartAsync(f, v.Value.Key, true); // process cannot be rerun
 
                         if (cancelled || result == false) return;
 
-                        await task.ApplyAsync(settings);
+                        if (settings.Sub == Substitution.Precise)
+                            await IWYUApply.ApplyPreciseAsync(settings, await x, task.ProcOutput, VCUtil.Std);
+                        else
+                            await IWYUApply.ApplyAsync(settings, task.ProcOutput);
                     }
                 }
             }

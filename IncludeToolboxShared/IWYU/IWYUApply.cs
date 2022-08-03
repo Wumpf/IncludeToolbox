@@ -1,89 +1,16 @@
-﻿using Microsoft.VisualStudio.Text;
-using System.Collections.Generic;
+﻿using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Text;
+using System;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
+using static IncludeToolbox.Parser;
 
 namespace IncludeToolbox
 {
     internal static class IWYUApply
     {
-        static readonly Regex pragma = new("#pragma\\s+once");
-        static readonly Regex remove = new Regex(@"^-\s+(.+)\s+\/\/ lines (\d+)-(\d+)$");
-        public struct AddTask
-        {
-            public AddTask(string Info, bool inc = true)
-            {
-                this.inc = inc;
-                this.Info = Info;
-            }
-            public bool inc;
-            public string Info;
-        }
-        public struct RemoveTask
-        {
-            public bool inc;
-            public string Info;
-            public Span LineRange;
+        static readonly string match = "The full include-list for ";
 
-            public RemoveTask(bool inc, string Info, Span LineRange) : this()
-            {
-                this.inc = inc;
-                this.Info = Info;
-                this.LineRange = LineRange;
-            }
-        }
-        public struct ApplyTasks
-        {
-            public List<AddTask> add;
-            public List<RemoveTask> rem;
-
-            public ApplyTasks(List<AddTask> add, List<RemoveTask> rem)
-            {
-                this.add = add;
-                this.rem = rem;
-                rem.Sort((a, b) => { return b.LineRange.Start.CompareTo(a.LineRange.Start); });
-            }
-
-            public void Apply(ITextEdit edit)
-            {
-                int start_pos = 0;
-                var lines = edit.Snapshot.Lines;
-                foreach (var line in lines)
-                {
-                    string text = line.GetText();
-                    var match = pragma.Match(text);
-                    if (match.Success)
-                        start_pos = match.Index + line.End;
-                    var i = text.IndexOf("#include");
-                    if (i >= 0)
-                    {
-                        start_pos = i + line.Start;
-                        break;
-                    }
-                }
-
-                foreach (var (r, l) in from r in rem
-                                       let l = lines.Skip(r.LineRange.Start).Take(r.LineRange.Length + 1)
-                                       select (r, l))
-                {
-                    var first = l.First();
-                    if (r.inc)
-                    {
-                        int begin = first.Start + first.GetTextIncludingLineBreak().IndexOf("#include");
-                        edit.Delete(begin, first.End - begin);
-                    }
-                    else
-                        edit.Delete(first.Start, first.End - first.Start);
-                }
-                foreach (var a in add)
-                {
-                    // later namespace parse
-                    edit.Insert(start_pos, a.Info + GetLineBreak(edit));
-                }
-            }
-        }
 
         public static Span GetIncludeSpan(string text)
         {
@@ -99,7 +26,7 @@ namespace IncludeToolbox
         }
         public static void ApplyCheap(ITextEdit edit, string result, bool commentary)
         {
-            if(!commentary)
+            if (!commentary)
             {
                 var lb = edit.Snapshot.Lines.ElementAt(0).GetLineBreakText();
                 lb = string.IsNullOrEmpty(lb) ? "\r\n" : lb;
@@ -123,39 +50,130 @@ namespace IncludeToolbox
             return Formatter.IncludeFormatter.FormatIncludes(text, file, include_directories, await FormatOptions.GetLiveInstanceAsync());
         }
 
-        public static ApplyTasks ParseTasks(IEnumerable<string> tasks, bool commentary)
+        public static async Task FormatAsync(DocumentView doc)
         {
-            List<AddTask> add = new();
-            List<RemoveTask> rem = new();
-            for (int i = 0; i < tasks.Count();i++)
-            {
-                var task = tasks.ElementAt(i);
-                if (task.EndsWith(" should add these lines:"))
-                {
-                    while (true)
-                    {
-                        task = tasks.ElementAt(++i);
-                        if (string.IsNullOrEmpty(task)) break;
-                        add.Add(new AddTask(commentary ? task : task.Substring(0, task.IndexOf("//")),
-                                            inc: task.StartsWith("#include")));
-                    }
-                }
-                if (task.EndsWith(" should remove these lines:"))
-                {
-                    while (true)
-                    {
-                        task = tasks.ElementAt(++i);
-                        if (string.IsNullOrEmpty(task)) break;
-                        var match = remove.Match(task);
+            using var xedit = doc.TextBuffer.CreateEdit();
+            var text = xedit.Snapshot.GetText();
+            var span = IWYUApply.GetIncludeSpan(text);
+            var result = await IWYUApply.PreformatAsync(new SnapshotSpan(xedit.Snapshot, span).GetText(), doc.FilePath);
+            xedit.Replace(span, result);
+            xedit.Apply();
+        }
 
-                        rem.Add(new RemoveTask(inc: task.StartsWith("- #include"),
-                            Info: match.Groups[1].Value,
-                            LineRange: Span.FromBounds(start:int.Parse(match.Groups[2].Value) - 1, end:int.Parse(match.Groups[3].Value) - 1) //starts from 0
-                            ));
-                    }
+        public static async Task ApplyAsync(IWYUOptions settings, string output)
+        {
+            if (output == "") return;
+
+            while (true)
+            {
+                int pos = output.IndexOf(match);
+                if (pos == -1) return;
+
+                pos += match.Length;
+                string part = output.Substring(pos);
+
+                int endp = part.IndexOf("---");
+                string path = part.Substring(0, part.IndexOf(':', 3));
+                var doc = await VS.Documents.OpenAsync(path);
+                using var edit = doc.TextBuffer.CreateEdit();
+
+
+                if (settings.Sub == Substitution.Cheap)
+                {
+                    int endl = part.IndexOf("\n");
+                    string result = part.Substring(endl, endp - endl);
+                    IWYUApply.ApplyCheap(edit,
+                        result,
+                        settings.Comms != Comment.No);
                 }
+                edit.Apply();
+
+                if (settings.Format)
+                    await FormatAsync(doc);
+                if (settings.FormatDoc)
+                    await VS.Commands.ExecuteAsync(Microsoft.VisualStudio.VSConstants.VSStd2KCmdID.FORMATDOCUMENT);
+
+                output = part.Substring(endp);
             }
-            return new ApplyTasks(add, rem);
+        }
+
+        public static async Task ApplyPreciseAsync(IWYUOptions settings, Parser.Output parsed, string output, Standard std)
+        {
+            if (output == "") return;
+
+            while (true)
+            {
+                int pos = output.IndexOf(match);
+                if (pos == -1) return;
+
+                var retasks = Parser.Parse(output.AsSpan().Slice(0, pos), true, true);
+                int sep_index = output.IndexOf(" should remove these lines:"); //find middle ground
+
+
+                pos += match.Length;
+                string part = output.Substring(pos);
+
+
+                int endp = part.IndexOf("---");
+                string path = part.Substring(0, part.IndexOf(':', 3));
+                var doc = await VS.Documents.OpenAsync(path);
+                using var edit = doc.TextBuffer.CreateEdit();
+
+
+
+                var add_f = retasks.Declarations.Where(s => s.span.begin < sep_index);
+                var rem_f = retasks.Declarations.Where(s => s.span.begin > sep_index);
+
+                var add_i = retasks.Includes.Where(s => s.span.begin < sep_index);
+                var rem_i = retasks.Includes.Where(s => s.span.begin > sep_index);
+
+
+                DeclNode tree = new(Lexer.TType.Namespace);
+                if (settings.MoveDecls)
+                {
+                    tree.AddChildren(parsed.Declarations.Where(s => !rem_f.Contains(s)));
+                    foreach (var task in parsed.Declarations)
+                        edit.Delete(task.AsSpan());
+                }
+
+                tree.AddChildren(add_f);
+                string result = tree.ToString(std >= Standard.cpp17);
+                edit.Insert(parsed.LastInclude, '\n' + result);
+
+
+                foreach (var item in add_i)
+                {
+                    edit.Insert(parsed.LastInclude, '\n' + item.span.str(output));
+                }
+                if (!settings.MoveDecls)
+                    foreach (var task in rem_f)
+                    {
+                        var found = parsed.Declarations.FindLast(s => s == task);
+
+                        if (!found.Valid()) continue;
+                        edit.Delete(found.AsSpan());
+                        parsed.Declarations.Remove(found);
+
+                    }
+
+                foreach (var task in rem_i)
+                {
+                    var found = parsed.Includes.FindLast(s => s == task);
+
+                    if (!found.Valid()) continue;
+                    edit.Delete(found.AsSpan());
+                    parsed.Includes.Remove(found);
+                }
+
+
+                edit.Apply();
+
+                if (settings.Format)
+                    await FormatAsync(doc);
+                if (settings.FormatDoc)
+                    await VS.Commands.ExecuteAsync(Microsoft.VisualStudio.VSConstants.VSStd2KCmdID.FORMATDOCUMENT);
+                output = part.Substring(endp);
+            }
         }
     }
 }

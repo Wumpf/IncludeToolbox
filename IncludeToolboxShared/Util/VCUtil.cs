@@ -21,12 +21,17 @@ namespace IncludeToolbox
         }
     }
 
+    
+
     public class VCUtil
     {
         static VCProject cached_project;
         static string command_line = "";
+        static Standard std = Standard.cpp23;
 
-        public static EnvDTE80.DTE2 GetDTE()
+        public static Standard Std { get => std; }
+
+        public static EnvDTE80.DTE2 GetDTE() //DEPRECATED
         {
             var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as EnvDTE80.DTE2;
             if (dte == null)
@@ -35,18 +40,6 @@ namespace IncludeToolbox
             }
             return dte;
         }
-        public static async Task SaveAllDocumentsAsync()
-        {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            try
-            {
-                GetDTE().Documents.SaveAll();
-            }
-            catch (Exception e)
-            {
-                Output.WriteLineAsync($"Failed to get save all documents: {e.Message}").FireAndForget();
-            }
-        }
 
         public static async Task<VCProject> GetVCProjectAsync(IVsHierarchy hierarchy)
         {
@@ -54,6 +47,8 @@ namespace IncludeToolbox
             _ = hierarchy.GetProperty(VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out var objProj);
             return (objProj as EnvDTE.Project)?.Object as VCProject;
         }
+
+        
 
         public static async Task<IEnumerable<string>> GetIncludeDirsAsync()
         {
@@ -99,21 +94,8 @@ namespace IncludeToolbox
                 .Split(';').Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select(x => "-D" + x);
 
-            string standard;
-            switch (xstandard)
-            {
-                default:
-                case "stdcpp20":
-                    standard = "-std=c++20";
-                    break;
-                case "stdcpp17":
-                    standard = "-std=c++17";
-                    break;
-                case "stdcpp14":
-                case "Default":
-                    standard = "-std=c++14";
-                    break;
-            }
+            std = ExtensionMethods.FromMSVCFlag(xstandard);
+            string standard = std.ToStdFlag();
 
             var inc_string = string.Join(" ", includes);
             var def_string = string.Join(" ", defs);
