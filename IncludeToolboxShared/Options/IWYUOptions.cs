@@ -139,6 +139,12 @@ namespace IncludeToolbox
         [DefaultValue(true)]
         public bool MoveDecls { get; set; } = true;
 
+        [Category("Options")]
+        [DisplayName("Remove Empty Namespaces")]
+        [Description("Removes empty namespaces from the file if finds any.")]
+        [DefaultValue(true)]
+        public bool RemoveENS { get; set; } = true;
+
         public async Task<bool> DownloadRequiredAsync()
         {
             if (download_required != null) return download_required.Value;

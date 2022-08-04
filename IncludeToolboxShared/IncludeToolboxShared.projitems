@@ -28,6 +28,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\MapperOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\TrialAndErrorRemovalOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ViewerOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\EmptyNS.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Lexer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\MapManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\NamespaceTree.cs" />

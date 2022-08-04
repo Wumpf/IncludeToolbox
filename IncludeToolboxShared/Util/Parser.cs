@@ -156,7 +156,7 @@ namespace IncludeToolbox
         }
     }
 
-    internal static class Parser
+    internal static partial class Parser
     {
         struct Context
         {
@@ -216,6 +216,12 @@ namespace IncludeToolbox
             {
                 return ns_tree.ToArray();
             }
+            public void Clear()
+            {
+                expected_tokens.Clear();
+                expected_tokens.Push(TType.Terminal); //terminal
+                expected_tokens.Push(TType.T0); //first rule
+            }
         }
         public struct Output
         {
@@ -247,7 +253,17 @@ namespace IncludeToolbox
             }
         }
 
-
+        static void FFWD(ref Lexer.Context ctx, int to_scope, int from_scope)
+        {
+            while (from_scope != to_scope)
+            {
+                var tok = ctx.GetToken(false);
+                if (tok.type == TType.OpenBr)
+                    from_scope++;
+                if (tok.type == TType.CloseBr)
+                    from_scope--;
+            }
+        }
 
         static bool LL_ID(ref Stack<TType> stack, TType current)
         {
@@ -526,5 +542,7 @@ namespace IncludeToolbox
         {
             return await Task.Run(() => Parse(text));
         }
+
+        
     }
 }

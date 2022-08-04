@@ -11,6 +11,16 @@ namespace IncludeToolbox
     {
         static readonly string match = "The full include-list for ";
 
+        public static void ClearNamespaces(ITextEdit edit)
+        {
+            var text = edit.Snapshot.GetText();
+            var rem = Parser.ParseEmptyNamespaces(text);
+            foreach (var ns in rem)
+            {
+                edit.Delete(ns);
+            }
+            edit.Apply();
+        }
 
         public static Span GetIncludeSpan(string text)
         {
@@ -24,6 +34,23 @@ namespace IncludeToolbox
         {
             return edit.Snapshot.Lines.ElementAt(0).GetLineBreakText();
         }
+
+        public static async Task<string> PreformatAsync(string text, string file)
+        {
+            var include_directories = await VCUtil.GetIncludeDirsAsync();
+            return Formatter.IncludeFormatter.FormatIncludes(text, file, include_directories, await FormatOptions.GetLiveInstanceAsync());
+        }
+
+        public static async Task FormatAsync(DocumentView doc)
+        {
+            using var xedit = doc.TextBuffer.CreateEdit();
+            var text = xedit.Snapshot.GetText();
+            var span = IWYUApply.GetIncludeSpan(text);
+            var result = await IWYUApply.PreformatAsync(new SnapshotSpan(xedit.Snapshot, span).GetText(), doc.FilePath);
+            xedit.Replace(span, result);
+            xedit.Apply();
+        }
+
         public static void ApplyCheap(ITextEdit edit, string result, bool commentary)
         {
             if (!commentary)
@@ -44,22 +71,6 @@ namespace IncludeToolbox
             edit.Replace(span, result);
         }
 
-        public static async Task<string> PreformatAsync(string text, string file)
-        {
-            var include_directories = await VCUtil.GetIncludeDirsAsync();
-            return Formatter.IncludeFormatter.FormatIncludes(text, file, include_directories, await FormatOptions.GetLiveInstanceAsync());
-        }
-
-        public static async Task FormatAsync(DocumentView doc)
-        {
-            using var xedit = doc.TextBuffer.CreateEdit();
-            var text = xedit.Snapshot.GetText();
-            var span = IWYUApply.GetIncludeSpan(text);
-            var result = await IWYUApply.PreformatAsync(new SnapshotSpan(xedit.Snapshot, span).GetText(), doc.FilePath);
-            xedit.Replace(span, result);
-            xedit.Apply();
-        }
-
         public static async Task ApplyAsync(IWYUOptions settings, string output)
         {
             if (output == "") return;
@@ -77,22 +88,13 @@ namespace IncludeToolbox
                 var doc = await VS.Documents.OpenAsync(path);
                 using var edit = doc.TextBuffer.CreateEdit();
 
+                int endl = part.IndexOf("\n");
+                string result = part.Substring(endl, endp - endl);
+                ApplyCheap(edit,
+                    result,
+                    settings.Comms != Comment.No);
 
-                if (settings.Sub == Substitution.Cheap)
-                {
-                    int endl = part.IndexOf("\n");
-                    string result = part.Substring(endl, endp - endl);
-                    IWYUApply.ApplyCheap(edit,
-                        result,
-                        settings.Comms != Comment.No);
-                }
                 edit.Apply();
-
-                if (settings.Format)
-                    await FormatAsync(doc);
-                if (settings.FormatDoc)
-                    await VS.Commands.ExecuteAsync(Microsoft.VisualStudio.VSConstants.VSStd2KCmdID.FORMATDOCUMENT);
-
                 output = part.Substring(endp);
             }
         }
@@ -166,12 +168,7 @@ namespace IncludeToolbox
                 }
 
 
-                edit.Apply();
-
-                if (settings.Format)
-                    await FormatAsync(doc);
-                if (settings.FormatDoc)
-                    await VS.Commands.ExecuteAsync(Microsoft.VisualStudio.VSConstants.VSStd2KCmdID.FORMATDOCUMENT);
+                edit.Apply(); 
                 output = part.Substring(endp);
             }
         }

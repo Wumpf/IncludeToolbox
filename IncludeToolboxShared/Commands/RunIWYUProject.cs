@@ -136,6 +136,13 @@ namespace IncludeToolbox.Commands
                             await IWYUApply.ApplyPreciseAsync(settings, await x, task.ProcOutput, VCUtil.Std);
                         else
                             await IWYUApply.ApplyAsync(settings, task.ProcOutput);
+
+                        if (settings.RemoveENS)
+                            IWYUApply.ClearNamespaces(doc.TextBuffer.CreateEdit());
+                        if (settings.Format)
+                            await IWYUApply.FormatAsync(doc);
+                        if (settings.FormatDoc)
+                            await VS.Commands.ExecuteAsync(Microsoft.VisualStudio.VSConstants.VSStd2KCmdID.FORMATDOCUMENT);
                     }
                 }
             }

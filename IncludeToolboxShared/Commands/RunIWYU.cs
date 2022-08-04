@@ -66,7 +66,8 @@ namespace IncludeToolbox.Commands
             if (settings.IgnoreHeader) IWYU.MoveHeader(doc);
             var buf = doc.TextBuffer;
             var str = buf.CurrentSnapshot.GetText();
-            
+
+
             var x = Parser.ParseAsync(str);
 
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -91,6 +92,14 @@ namespace IncludeToolbox.Commands
                 await IWYUApply.ApplyPreciseAsync(settings, await x, proc.ProcOutput, VCUtil.Std);
             else
                 await IWYUApply.ApplyAsync(settings, proc.ProcOutput);
+
+
+            if (settings.RemoveENS)
+                IWYUApply.ClearNamespaces(doc.TextBuffer.CreateEdit());
+            if (settings.Format)
+                await IWYUApply.FormatAsync(doc);
+            if (settings.FormatDoc)
+                await VS.Commands.ExecuteAsync(Microsoft.VisualStudio.VSConstants.VSStd2KCmdID.FORMATDOCUMENT);
         }
     }
 }
