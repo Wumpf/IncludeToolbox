@@ -70,15 +70,15 @@ jobs:
         with:
           vsix-file: ${{ github.event.repository.name }}.vsix
 
-      #- name: Tag and Release
-      #  if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]') }}
-      #  id: tag_release
-      #  uses: softprops/action-gh-release@v1
-      #  with:
-      #    body: Release ${{ needs.build.outputs.version }}
-      #    tag_name: ${{ needs.build.outputs.version }}
-      #    files: |
-      #      **/*.vsix
+      - name: Tag and Release
+        if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]') }}
+        id: tag_release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: Release ${{ needs.build.outputs.version }}
+          tag_name: ${{ needs.build.outputs.version }}
+          files: |
+            **/*.vsix
 
       - name: Publish extension to Marketplace
         if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]') }}
