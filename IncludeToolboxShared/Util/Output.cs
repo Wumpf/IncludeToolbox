@@ -8,7 +8,7 @@ namespace IncludeToolbox
         static private OutputWindowPane pane;
         static public async Task InitializeAsync()
         {
-            pane = await VS.Windows.CreateOutputWindowPaneAsync("Include Minimizer");
+            pane = await VS.Windows.CreateOutputWindowPaneAsync("Include Toolbox");
         }
         static public async Task WriteLineAsync(string str)
         {
