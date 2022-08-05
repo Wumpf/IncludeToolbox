@@ -123,7 +123,7 @@ namespace IncludeToolbox
             private int FindDelim()
             {
                 int i = 0;
-                while (i < code.Length && char.IsLetterOrDigit(code[i])) i++;
+                while (i < code.Length && (char.IsLetterOrDigit(code[i])|| code[i] == '_')) i++;
                 return i;
             }
             private int FindBrace(char brace)
