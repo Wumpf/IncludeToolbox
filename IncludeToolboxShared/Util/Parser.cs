@@ -255,7 +255,7 @@ namespace IncludeToolbox
 
         static void FFWD(ref Lexer.Context ctx, int to_scope, int from_scope)
         {
-            while (from_scope != to_scope)
+            while (from_scope != to_scope && !ctx.Empty())
             {
                 var tok = ctx.GetToken(false);
                 if (tok.type == TType.OpenBr)
@@ -355,21 +355,21 @@ namespace IncludeToolbox
             return false;
         }
 
-        static bool LLTable(ref Stack<TType> context, TType input, TType current)
+        static bool LLTable(ref Stack<TType> lctx, TType input, TType current)
         {
             switch (input)
             {
-                case TType.Namespace: return LL_Namespace(ref context, current);
-                case TType.Class: return LL_Class(ref context, current);
-                case TType.Struct: return LL_Struct(ref context, current);
-                case TType.Enum: return LL_Enum(ref context, current);
-                case TType.ID: return LL_ID(ref context, current);
+                case TType.Namespace: return LL_Namespace(ref lctx, current);
+                case TType.Class: return LL_Class(ref lctx, current);
+                case TType.Struct: return LL_Struct(ref lctx, current);
+                case TType.Enum: return LL_Enum(ref lctx, current);
+                case TType.ID: return LL_ID(ref lctx, current);
                 case TType.Colon:
                     if (current == TType.T2)
                     {
-                        context.Push(TType.T2);
-                        context.Push(TType.ID);
-                        context.Push(TType.Colon);
+                        lctx.Push(TType.T2);
+                        lctx.Push(TType.ID);
+                        lctx.Push(TType.Colon);
                         return true;
                     }
                     return false;
@@ -378,8 +378,8 @@ namespace IncludeToolbox
                 case TType.Include:
                     if (current == TType.T0)
                     {
-                        context.Push(TType.T5);
-                        context.Push(TType.Include);
+                        lctx.Push(TType.T5);
+                        lctx.Push(TType.Include);
                         return true;
                     }
                     break;
@@ -387,8 +387,8 @@ namespace IncludeToolbox
                 case TType.QuoteID:
                     if (current == TType.T5)
                     {
-                        context.Push(TType.T0);
-                        context.Push(input);
+                        lctx.Push(TType.T0);
+                        lctx.Push(input);
                         return true;
                     }
                     break;
@@ -402,17 +402,6 @@ namespace IncludeToolbox
 
         public static Output Parse(ReadOnlySpan<char> text, bool disable_ns = false, bool disable_count = false)
         {
-            Lexer.Context context = new(text);
-            Parser.Context pcontext = new();
-            bool accept = false;
-            bool include_end = false;
-            Token tok = context.GetToken(accept);
-            int last_include = -1; //eof
-
-
-            bool scope_saver = false;
-            uint scope = 0;
-
             List<Namespace> namespaces = new();
             List<FWDDecl> fwd = new();
             List<Include> includes = new();
@@ -420,117 +409,108 @@ namespace IncludeToolbox
             FWDDecl decl = new();
             Include inc = new();
 
+            Lexer.Context lctx = new(text);
+            Parser.Context pctx = new();
+            bool accept = false;
+            bool include_end = false;
+            Token tok = lctx.GetToken(accept);
+            int last_include = -1; //eof
 
 
-            while (pcontext.expected_tokens.Count != 0 && tok.valid())
+            while (pctx.expected_tokens.Count != 0 && tok.valid())
             {
-                if (scope_saver) //optimized if content is not fwd declaration
+                TType expect = pctx.expected_tokens.Peek();
+
+                if (expect >= TType.T0) //LL rules
                 {
-                    if (tok.type == TType.OpenBr)
-                        pcontext++;
+                    pctx.expected_tokens.Pop();
+                    accept = LLTable(ref pctx.expected_tokens, tok.type, expect);
+                    continue;
+                }
+                if (!accept || expect != tok.type)
+                {
+                    pctx.Clear(); // unexpected token, start anew
+                    if (tok.type == TType.OpenBr) // if scope, probably function or class
+                        FFWD(ref lctx, (int)pctx.Scope, (int)pctx.Scope + 1);
                     if (tok.type == TType.CloseBr)
-                        pcontext--;
-                    scope_saver = pcontext.Scope != scope;
-                    tok = context.GetToken(false);
+                        pctx--;
+                    tok = lctx.GetToken(accept);
                     continue;
                 }
 
-                TType expect = pcontext.expected_tokens.Peek();
+                pctx.expected_tokens.Pop();
 
-
-                if (expect >= TType.T0 && expect <= TType.T5) //LL rules
+                if (!disable_count && !include_end 
+                    && expect != TType.Include 
+                    && expect != TType.AngleID 
+                    && expect != TType.QuoteID
+                    && includes.Count > 0)
                 {
-                    pcontext.expected_tokens.Pop();
-                    accept = LLTable(ref pcontext.expected_tokens, tok.type, expect);
-                    if (!accept)
-                    {
-                        scope = pcontext.Scope;
-                        scope_saver = true;
-
-                        pcontext.expected_tokens.Push(TType.T0); // unexpected token, start anew
-                    }
-                    continue;
+                    include_end = true; 
+                    last_include = includes.Last().span.end;
                 }
 
-                if (expect == tok.type)
+                switch (expect)
                 {
-                    pcontext.expected_tokens.Pop();
-
-                    if (!disable_count && !include_end && expect != TType.Include && expect != TType.AngleID && expect != TType.QuoteID)
-                    {
-                        include_end = true; last_include = includes.Last().span.end;
-                    }
-
-                    switch (expect)
-                    {
-                        case TType.Namespace:
-                            pcontext.Namespace = true;
+                    case TType.Namespace:
+                        pctx.Namespace = true;
+                        if (!disable_ns)
+                            ns = new(tok, pctx.Scope);
+                        break;
+                    case TType.Class:
+                        if (!decl.finished && decl.type == TType.Enum)
+                            decl.type = TType.EnumClass; //special case
+                        else goto case TType.Struct;
+                        break;
+                    case TType.Struct:
+                    case TType.Enum:
+                        decl = new(tok);
+                        break;
+                    case TType.ID:
+                        if (pctx.Namespace)
+                            pctx.PushNamespace(tok.value.ToString());
+                        else
+                            decl.ID = tok.value.ToString();
+                        break;
+                    case TType.OpenBr:
+                        if (pctx.Namespace)
+                        {
                             if (!disable_ns)
-                                ns = new(tok, pcontext.Scope);
-                            break;
-                        case TType.Class:
-                            if (!decl.finished && decl.type == TType.Enum)
-                                decl.type = TType.EnumClass; //special case
-                            else goto case TType.Struct;
-                            break;
-                        case TType.Struct:
-                        case TType.Enum:
-                            decl = new(tok);
-                            break;
-                        case TType.ID:
-                            if (pcontext.Namespace)
-                                pcontext.PushNamespace(tok.value.ToString());
-                            else
-                                decl.ID = tok.value.ToString();
-                            break;
-                        case TType.OpenBr:
-                            if (pcontext.Namespace)
                             {
-                                if (!disable_ns)
-                                {
-                                    ns.namespaces = pcontext.GetNamespace();
-                                    ns.SetEnd(tok.Position);
-                                    namespaces.Add(ns);
-                                }
-                                pcontext.Namespace = false;
+                                ns.namespaces = pctx.GetNamespace();
+                                ns.SetEnd(tok.Position);
+                                namespaces.Add(ns);
                             }
-                            break;
-                        case TType.CloseBr:
-                            pcontext.PopNamespace(); break;
-                        case TType.Include:
-                            inc = new(tok); break;
-                        case TType.QuoteID:
-                        case TType.AngleID:
-                            inc.value = tok.value.ToString();
-                            inc.SetEnd(tok.Position + tok.value.Length);
-                            inc.type = expect;
-                            includes.Add(inc);
-                            break;
-                        case TType.Semicolon:
-                            decl.SetEnd(tok.Position);
-                            decl.finished = true;
-                            decl.namespaces = pcontext.ns_tree.ToArray();
-                            fwd.Add(decl);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else
-                {
-                    scope = pcontext.Scope;
-                    scope_saver = true;
-
-                    pcontext.expected_tokens.Push(TType.T0); // unexpected token, start anew
+                            pctx.Namespace = false;
+                        }
+                        break;
+                    case TType.CloseBr:
+                        pctx.PopNamespace(); break;
+                    case TType.Include:
+                        inc = new(tok); break;
+                    case TType.QuoteID:
+                    case TType.AngleID:
+                        inc.value = tok.value.ToString();
+                        inc.SetEnd(tok.Position + tok.value.Length);
+                        inc.type = expect;
+                        includes.Add(inc);
+                        break;
+                    case TType.Semicolon:
+                        decl.SetEnd(tok.Position);
+                        decl.finished = true;
+                        decl.namespaces = pctx.ns_tree.ToArray();
+                        fwd.Add(decl);
+                        break;
+                    default:
+                        break;
                 }
 
                 if (tok.type == TType.OpenBr)
-                    pcontext++;
+                    pctx++;
                 if (tok.type == TType.CloseBr)
-                    pcontext--;
+                    pctx--;
 
-
-                tok = context.GetToken(accept);
+                tok = lctx.GetToken(accept);
             }
             return new Output(namespaces, fwd, includes, last_include);
         }
@@ -543,6 +523,6 @@ namespace IncludeToolbox
             return await Task.Run(() => Parse(text));
         }
 
-        
+
     }
 }

@@ -104,7 +104,12 @@ namespace IncludeToolbox
                 {
                     int rem = code.IndexOf('*');
                     RemovePrefix(rem + 1);
-                    if (rem == -1 || Fetch() == '/') return;
+                    if (rem == -1) return;
+                    if (Prefetch() == '/')
+                    {
+                        RemovePrefix(1);
+                        return;
+                    }
                 }
             }
 
