@@ -60,9 +60,11 @@ To suppress removal of a single include, add a comment to its line containin_g_ 
 
 ## Include-What-You-Use Integration
 
+
 ![Include What You Use](/art/iwyu.gif)
 
 Include Toolbox with an integration of the free [Include-What-You-Use](https://github.com/include-what-you-use/include-what-you-use). By default (see _Tools>Options>Include Toolbox>Include-What-You-Use_) it is downloaded together with a VC++ specific mapping file from [this github repository](https://github.com/Agrael1/BuildIWYU) upon first use (and whenever there is a newer version available in this repository). New version is automatically built and shipped every month.
+
 
 Again, it can be activated by right clicking on a C++ Code file in a VC++ document. The Option page exposes most of IWYU's command line options and provides the option to directly apply the results. The complete output will be displayed in the Include Toolbox output window.
 
@@ -108,6 +110,7 @@ Requires fixes.
     Look in the output window for Include Toolbox to get more information.
 
 # Version History
+
 * 3.0.0 
    * New SDK and Tools. General renewal. Visual Studio 2022 support, dropped support for 2015 and 2017.
    * Refactoring of IWYU, new code and new feature set.
