@@ -3,16 +3,17 @@
 
 Include Toolbox consists of 4 different tools. All of them are only applicable to VC++ projects.
 
-_![](/256640/1/includetoolbox_format.png) [Command]_ Include Formatter  
-_![](/256641/1/includetoolbox_prune.png) [Command]_ Trial and Error Include Removal  
-_![](/256641/1/includetoolbox_prune.png) [Command]_ [Include-What-You-Use](https://include-what-you-use.org/) Integration  
-_![](/256642/1/includetoolbox_search.png)[Tool Window]_ Include Graph
+![](/art/iformat.png) **[Command]** Include Formatter  
+![](/art/itrial.png) **[Command]** Trial and Error Include Removal  
+![](/art/iwyu.png) **[Command]** [Include-What-You-Use](https://include-what-you-use.org/) Integration  
+![](/art/AddPageGuides.png) **[Command]** Mapper module for IWYU  
+![](/art/igraph.png)**[Tool Window]** ~~Include Graph~~
 
 # Tools in Detail
 
 ## Include Formatter
 
-## ![](/256989/1/includeformatter.gif)
+![Include Format](/art/includeformatter.gif)
 
 Select a group of includes, right click, select "Format Selected Includes"
 
@@ -59,38 +60,47 @@ To suppress removal of a single include, add a comment to its line containin_g_ 
 
 ## Include-What-You-Use Integration
 
-Include Toolbox with an integration of the free [Include-What-You-Use](https://github.com/include-what-you-use/include-what-you-use). By default (see _Tools>Options>Include Toolbox>Include-What-You-Use_) it is downloaded together with a VC++ specific mapping file from [this github repository](https://github.com/Wumpf/iwyu_for_vs_includetoolbox) upon first use (and whenever there is a newer version available in this repository).
+![Include What You Use](/art/iwyu.gif)
+
+Include Toolbox with an integration of the free [Include-What-You-Use](https://github.com/include-what-you-use/include-what-you-use). By default (see _Tools>Options>Include Toolbox>Include-What-You-Use_) it is downloaded together with a VC++ specific mapping file from [this github repository](https://github.com/Agrael1/BuildIWYU) upon first use (and whenever there is a newer version available in this repository). New version is automatically built and shipped every month.
 
 Again, it can be activated by right clicking on a C++ Code file in a VC++ document. The Option page exposes most of IWYU's command line options and provides the option to directly apply the results. The complete output will be displayed in the Include Toolbox output window.
 
 IWYU often does not work as expected - for more information look at the [official docs](https://github.com/include-what-you-use/include-what-you-use/tree/master/docs).
 
-To suppress removal of a single include, add a comment to its line containin_g_ _$include-toolbox-preserve$_
+IWYU has several pragmas, described at [Pragmas](https://github.com/include-what-you-use/include-what-you-use/blob/master/docs/IWYUPragmas.md), e.g. `//IWYU pragma: keep` works as include removal suppresor.
 
-## Include Graph
+Since 3.0.0:
+Added mapper support. Maps produced with it are used to make results better, as it describes all include files within mapped file.
 
-The Include Graph tool window shows you all (transitive) includes of a file either in a hierarchical view or grouped by folder. You can find it the View menu under _View>Other Windows>Include Graph_.
+Added cheap and precise modes: cheap mode copies contents of IWYU output, may be undesirable, as it does not account forward declarations, but it is fast. Presice mode uses custom LL1 partial parser, which reads all the information from file and output, combining all the possibilities it allows for additional steps:
+ - Format all includes
+ - Extract all forward declarations and place them before code
+ - Empty namespaces removal, useful combining with previous option 
 
-![](/265546/1/includegraph.gif)
+There is a BETA feature of IWYU usage with several files:
+ - Select several files in project menu.
+ - *Right click>Run Include-What-You-Use*
 
-There are two modes of parsing to choose from:
+It is useful for example with several .cpp files, when you are sure, that headers included are fully correct.
 
-*   _Direct Parsing_ (default)
-    *   Uses a simplistic handwritten parser!
-        *   Works on all files!
-        *   Does not further parse any file that is in one of the folder listed in _Tools>Options>Include Toolbox>Include Graph>Graph Endpoint Directories_  
+## Map Generator for Include-What-You-Use [beta]
 
-            *   (To prevent meaningless drilling down in standard library files)
-    *   Completely Ignores #pragma once and preprocessor!
-        *   If an
-    *   Has information on exact line number an include was done and double click in the hierarchy jumps to the place
-*   _Compile /showIncludes_
-    *   Compiles the file with vc.exe /showIncludes and parses the output
-        *   Works only on compilable files
-    *   Output depends on _preprocessed_ file - sticks to currently active preprocessors and pragmas
-    *   No information about #include line numbers, double click jumps to the including file
+The feature is tested, but it is useful even within large projects. It makes results of IWYU better. Works only on header files.
 
-The "Grouped by Folder" view shows only unique included files in a minimal folder tree. This can be useful to get a feeling of the modules a file is dependent on.
+It gets all the #include declarations and writes them as they are to the specified mapping file. Combining several of those files are done using `{ref: }` in the final file. To find more: [](https://github.com/include-what-you-use/include-what-you-use/blob/master/docs/IWYUMappings.md)
+
+Configuration is on *Tools>Options>Include Toolbox>Include Mapper* page.
+
+Mapper has one option, that specifies separator you would like to use, quotes or angle brackets. This option maps opposite choice as a private header, ultimately forsing IWYU to choose your vision of the file.
+
+To specify relative index use *Relative File Prefix* option. e.g. C:\\users\\map\\a.h with prefix C:\\users will write <map/a.h> to the final map.
+
+The feature is in beta. 
+
+## ~~Include Graph~~
+
+Requires fixes.
 
 # FAQ:
 
@@ -100,6 +110,17 @@ The "Grouped by Folder" view shows only unique included files in a minimal folde
     Look in the output window for Include Toolbox to get more information.
 
 # Version History
+* 3.0.0 
+   * New SDK and Tools. General renewal. Visual Studio 2022 support, dropped support for 2015 and 2017.
+   * Refactoring of IWYU, new code and new feature set.
+   * Some features are dropped for now, until fixed. 
+   * Build pipeline for IWYU, which builds every month at [Build](https://github.com/Agrael1/BuildIWYU)!
+   * CI/CD for this whole project!
+   * Added Include mapper[beta] for IWYU, works as public-public include mapping.
+   * Include What You Use additions:
+       * Added LL1 partial parser for includes and forward declarations.
+       * Added forward declaration moving to the beginning of the file, after all the includes.
+       * Empty namespace removal tool.   
 * 2.4.1
    * Fixed crash when opening context menu on some non-project files
 * 2.4.0

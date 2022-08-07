@@ -7,6 +7,32 @@
   },
   "assetFiles": [
     {
+      "pathOnDisk": "art/AddPageGuides.png",
+      "targetPath": "art/AddPageGuides.png"
+    },
+    {
+      "pathOnDisk": "art/iformat.png",
+      "targetPath": "art/iformat.png"
+    },
+    {
+      "pathOnDisk": "art/igraph.png",
+      "targetPath": "art/igraph.png"
+    },
+    {
+      "pathOnDisk": "art/includeformatter.gif",
+      "targetPath": "art/includeformatter.gif"
+    },
+    {
+      "pathOnDisk": "art/itrial.png",
+      "targetPath": "art/itrial.png"
+    },
+    {
+      "pathOnDisk": "art/iwyu.gif",
+      "targetPath": "art/iwyu.gif"
+    },
+    {
+      "pathOnDisk": "art/iwyu.png",
+      "targetPath": "art/iwyu.png"
     }
   ],
   "overview": "README.md",
