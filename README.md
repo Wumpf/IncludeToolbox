@@ -1,16 +1,199 @@
-# IncludeToolbox
-Visual Studio extension for managing C/C++ includes:
-* **Format & Sort:** Format include commands to cleanup large lists of includes according to your preferences
-* **Purge:** Integrates [Include-What-You-Use](https://github.com/include-what-you-use/include-what-you-use) and comes with simpler but more reliable _Trial and Error Removal_ tool
-* **Explore:** _Include Graph_ tool window shows the tree of includes for a given file
+# Include Toolbox
+**_Tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning._**  
 
-# Plans:
-[ ] Refactor modules to use Community SDK
-[ ] Add map generator for IWYU
-[ ] Repair Graph window
-[ ] Add support for preprocessor directives
-[ ] Make automatic publishing pipelines
-[x] Make pipeline for IWYU and maps
-[ ] bugfixes...
- 
-More information and download on the [Visual Studio Extension Gallery page](https://visualstudiogallery.msdn.microsoft.com/28c36d4f-425a-4bfe-9449-03f07b35f7b0)
+Include Toolbox consists of 4 different tools. All of them are only applicable to VC++ projects.
+
+_![](/256640/1/includetoolbox_format.png) [Command]_ Include Formatter  
+_![](/256641/1/includetoolbox_prune.png) [Command]_ Trial and Error Include Removal  
+_![](/256641/1/includetoolbox_prune.png) [Command]_ [Include-What-You-Use](https://include-what-you-use.org/) Integration  
+_![](/256642/1/includetoolbox_search.png)[Tool Window]_ Include Graph
+
+# Tools in Detail
+
+## Include Formatter
+
+## ![](/256989/1/includeformatter.gif)
+
+Select a group of includes, right click, select "Format Selected Includes"
+
+The behavior of this command is controlled by various options which can be configured in _Tools>Options>Include Toolbox>Include Formatter_:
+
+*   Formatting
+    *   Delimiter Mode  
+        Optionally change "" to <> or vice versa
+    *   Slash Mode  
+        Optionally changes / to \ or vice versa
+    *   Remove Empty Lines  
+        Optionally removes empty lines within the selection
+*   Path Reformatting
+    *   Ignore File Relative  
+        If true, the local file path will not be considered for reformatting the path
+    *   Mode  
+        Configures the strategy that should be used to determine new include paths
+*   Sorting  
+    The tool will always sort all selected includes alphabeticaly, unless..
+    *   Precedence Regex  
+        Every line gives a regex - if an include matches a regex, it has precedence over all other includes that do not match any, or a later regex. Multiple includes that match the same regex are still alphabetically sorted.
+    *   Sort by Include Type  
+        Optionally puts all inclues with either quotes or angle brackets first.
+
+All operations are performed in the order in which they occur on the option page.
+
+## Trial and Error Include Removal
+
+The name says it all: This tool will try to remove an include, recompile, see if it works and proceed to the next one accordingly.  
+The tool can be started an all compilable files in a VC++ by right clicking on the code window. There is also a special version in the Project context menu which will run over every single file in the project (takes very long).
+
+Obviously the results of this tool are far from optimal and the process can take a while.
+
+The exact behavior of this command can be controlled in _Tools>Options>Include Toolbox>Trial and Error Include Removal_:
+
+*   Ignore List  
+    A list of regexes. If the content of an include matches any of these, it will never be removed.
+*   Ignore First Include  
+    If true the top most include will always be ignored
+*   Removal Order  
+    Wheater the tool should run from top to bottom or bottom to top (this can make a difference on the end result)
+
+To suppress removal of a single include, add a comment to its line containin_g_ _$include-toolbox-preserve$_
+
+## Include-What-You-Use Integration
+
+Include Toolbox with an integration of the free [Include-What-You-Use](https://github.com/include-what-you-use/include-what-you-use). By default (see _Tools>Options>Include Toolbox>Include-What-You-Use_) it is downloaded together with a VC++ specific mapping file from [this github repository](https://github.com/Wumpf/iwyu_for_vs_includetoolbox) upon first use (and whenever there is a newer version available in this repository).
+
+Again, it can be activated by right clicking on a C++ Code file in a VC++ document. The Option page exposes most of IWYU's command line options and provides the option to directly apply the results. The complete output will be displayed in the Include Toolbox output window.
+
+IWYU often does not work as expected - for more information look at the [official docs](https://github.com/include-what-you-use/include-what-you-use/tree/master/docs).
+
+To suppress removal of a single include, add a comment to its line containin_g_ _$include-toolbox-preserve$_
+
+## Include Graph
+
+The Include Graph tool window shows you all (transitive) includes of a file either in a hierarchical view or grouped by folder. You can find it the View menu under _View>Other Windows>Include Graph_.
+
+![](/265546/1/includegraph.gif)
+
+There are two modes of parsing to choose from:
+
+*   _Direct Parsing_ (default)
+    *   Uses a simplistic handwritten parser!
+        *   Works on all files!
+        *   Does not further parse any file that is in one of the folder listed in _Tools>Options>Include Toolbox>Include Graph>Graph Endpoint Directories_  
+
+            *   (To prevent meaningless drilling down in standard library files)
+    *   Completely Ignores #pragma once and preprocessor!
+        *   If an
+    *   Has information on exact line number an include was done and double click in the hierarchy jumps to the place
+*   _Compile /showIncludes_
+    *   Compiles the file with vc.exe /showIncludes and parses the output
+        *   Works only on compilable files
+    *   Output depends on _preprocessed_ file - sticks to currently active preprocessors and pragmas
+    *   No information about #include line numbers, double click jumps to the including file
+
+The "Grouped by Folder" view shows only unique included files in a minimal folder tree. This can be useful to get a feeling of the modules a file is dependent on.
+
+# FAQ:
+
+*   Why don't you apply the formatting to all includes within a file?  
+    This may sound desirable, but is very messy if there are optional includes (preprocessor) or specific exceptions where not all includes should be in the same place or in the default order.
+*   XY didn't work, what is going on?  
+    Look in the output window for Include Toolbox to get more information.
+
+# Version History
+* 2.4.1
+   * Fixed crash when opening context menu on some non-project files
+* 2.4.0
+   * Added support for Visual Studio 2019
+   * Dropped support for Visual Studio 2015
+   * Made some operations asynchronous under the hood, related bugfixing/checks driven by VS2019's static analysis warnings
+* 2.3.0
+   * Include Formatter contributions by  _[Dakota Hawkins](https://github.com/dakotahawkins)_
+        *  has now a remove duplicates option which is enabled by default
+        *  Fixed not adding newlines before the last line of a batch
+   * Fixed TrialAndErrorRemoval stopping when encountering an unsupported document, changed operation timeout to a couple of minutes ([PR by _bytefactory73_](https://github.com/Wumpf/IncludeToolbox/pull/58))
+  * Fixed IWYU failing for long command line argument ([PR by _codingdave_](https://github.com/Wumpf/IncludeToolbox/pull/60))
+  * Trying now to query NMake settings for include paths if there is no VCCLCompilerTool present (happens if vcxproj is not a standard C++ project)
+*   2.2.0
+    *   IWYU Integration/Trial and Error Include Removal
+        *   Introduced comment-tag to avoid removing include (thx to [_ergins23_ for suggesting](https://github.com/Wumpf/IncludeToolbox/issues/38))
+    *   IWYU Integration
+        *   Passes now arch parameter for x64 projects on (thx to [_Fei_ for reporting](https://github.com/Wumpf/IncludeToolbox/issues/43))
+        *   Added option for custom parameters (thx to [_Fei_ for suggesting](https://github.com/Wumpf/IncludeToolbox/issues/44))
+*   2.1.5
+    *   [Fixed](https://github.com/Wumpf/IncludeToolbox/issues/41) random timeouts in Trial and Error Include Removal
+    *   Updated internal library references & used VS Extension toolkit
+*   2.1
+    *   DGML graph saving feature improvements  
+
+        *   Each nodes has information about child count and unique transitive child counts
+        *   Option to color elements by transitive child count
+        *   Option to group by folders, expanded or collapsed
+        *   Messageprompt after graph is saved, allows to open in VS directly
+    *   Other fixes and small improvements  
+
+        *   Renamed "Try and Error Include Removal" to "_Trial_ and Error Include Removal" (thx to [_steronydh_ for reporting](https://github.com/Wumpf/IncludeToolbox/issues/35))
+        *   Include sorting treats other preprocessor directives as barrier over which includes can't be moved (thx to [_etiennehebert_ for reporting](https://github.com/Wumpf/IncludeToolbox/issues/34))
+        *   Pressing enter on item in Include Graph jumps to include (previously only double click)
+        *   Fixed Include Graph not displaying graph when switching active file while graph is computed
+*   2.0.1
+    *   Fixed bug that BlankAfterRegexGroupMatch option would only work if RemoveEmptyLines was active as well.
+    *   Fixed crash in formatter if delimiter mode not "Unchanged" + "Remove Empty Lines" was false. (thx to [_etiennehebert_ for reporting](https://github.com/Wumpf/IncludeToolbox/issues/33))
+    *   Include Graph folder items end now in slashes.
+*   2.0
+    *   Rewrote Include Graph ("Include Viewer" previously)
+        *   New, improved UI
+        *   Allows to display includes grouped by folder
+        *   Much faster graph bulid up using by direct parsing (as alternative to compile with /showIncludes)
+        *   Double click can navigate to include site
+        *   Graph can be saved as DGML file
+    *   Trial-and-Error-Include-Removal "Ignore List" option does now support "$(currentFilename)" macro
+        *   Default setting include "(\/|\\\\|^)$(currentFilename)\.(h|hpp|hxx|inl|c|cpp|cxx)$" to ignore corresponding header file in removal
+*   1.8
+    *   Include-what-you-use (iwyu):
+        *   Iwyu.exe is no longer part of the package. Instead there is a automatic download and update from a [different repository](https://github.com/Wumpf/iwyu_for_vs_includetoolbox) on first use.
+        *   iwyu.exe path can be configured by user
+        *   In case of automatic download, mapping files in iwyu path will be added to configuration
+        *   Fixed hardcoded defines being passed to iwyu
+        *   MSVC version is correctly passed to iwyu
+        *   Fixed issues with applying removal/addition of declarations
+        *   Changes can now optionally run through IncludeFormatter (on by default)
+    *   Formatter:
+        *   Include parser recognizes all whitespace-only lines as empty
+        *   No longer resolves includes via file local path if "Ignore File Relative" option is active
+        *   Formatting applied to includes inside preprocessor conditionals again. (Still ignored for include removal though)
+        *   Fixed incorrect include parse behavior for preceding /* */ comment.
+        *   Fixed potential crashes in internal path resolve
+    *   Other:
+        *   New Icons!
+        *   Safer against crashes in commands
+        *   Codebase has now a handful of unit tests
+*   1.7
+    *   .inl and _inl.h are by default ignored for trial-and-error-include-removal (configurable)
+    *   New option for trial-and-error-include-removal to keep line breaks (off by default)
+    *   _Contributed_ by [Adam Skoglund](https://github.com/gulgi): Another fix for folder handling in trial-and-error-include-removal
+*   1.6 _- _Contributed_ by [Adam Skoglund](https://github.com/gulgi)_  
+
+    *   Basic support for #if/#endif  - any include within an #if/#endif block will be ignored.
+    *   Better support for subdirectories in trial-and-error-include-removal on projects.
+*   1.5
+    *   Fixed problems with VCProject runtimes in VS2015 introduced in previous version.  
+        Required suprisingly large internal restructuring to support both VS2015 and VS2017 equally.
+*   1.4
+    *   Support for VS2017
+    *   "Format Selected Includes" action is now only visible if includes were actually selected.
+    *   "Format Selected Includes" works partially now also on files that are not in the currently loaded project
+    *   Fixed an error in IWYU include removal parsing
+*   1.3 - __Contributed_ by [Dakota Hawkins](https://github.com/dakotahawkins)_  
+
+    *   Added option to put spaces between precedence regex matches.
+    *   Improved regex sorting via "Schwartzian transform" (= grouping by regex order number before sorting).
+*   1.2 _- Contributed by [Dakota Hawkins](https://github.com/dakotahawkins)_
+    *   Added option to include delimiters in precedence regex to allow more advanced sorting (for a sample see [original pull request](https://github.com/Wumpf/IncludeToolbox/pull/4)).
+*   1.1
+    *   Remove dependency to ezEngine.
+    *   IncludeViewer visualizes now the output of the /showIncludes command instead of trying to run the preprocessor manually.
+*   1.01
+    *   Have includes with quotes or angle brackets first
+*   1.0
+    *   First release.
+    *   Merged two old projects "Include Viewer" and "Include Formatter" to new "Include Toolbox" bundle
