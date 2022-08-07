@@ -88,15 +88,13 @@ It is useful for example with several .cpp files, when you are sure, that header
 
 The feature is tested, but it is useful even within large projects. It makes results of IWYU better. Works only on header files.
 
-It gets all the #include declarations and writes them as they are to the specified mapping file. Combining several of those files are done using `{ref: }` in the final file. To find more: [](https://github.com/include-what-you-use/include-what-you-use/blob/master/docs/IWYUMappings.md)
+It gets all the #include declarations and writes them as they are to the specified mapping file. Combining several of those files are done using `{ref: }` in the final file. To find more visit [official mappings guide](https://github.com/include-what-you-use/include-what-you-use/blob/master/docs/IWYUMappings.md)
 
 Configuration is on *Tools>Options>Include Toolbox>Include Mapper* page.
 
 Mapper has one option, that specifies separator you would like to use, quotes or angle brackets. This option maps opposite choice as a private header, ultimately forsing IWYU to choose your vision of the file.
 
 To specify relative index use *Relative File Prefix* option. e.g. C:\\users\\map\\a.h with prefix C:\\users will write <map/a.h> to the final map.
-
-The feature is in beta. 
 
 ## ~~Include Graph~~
 
@@ -114,7 +112,7 @@ Requires fixes.
    * New SDK and Tools. General renewal. Visual Studio 2022 support, dropped support for 2015 and 2017.
    * Refactoring of IWYU, new code and new feature set.
    * Some features are dropped for now, until fixed. 
-   * Build pipeline for IWYU, which builds every month at [Build](https://github.com/Agrael1/BuildIWYU)!
+   * Build pipeline for IWYU, which builds every month at [Build Pipeline](https://github.com/Agrael1/BuildIWYU)!
    * CI/CD for this whole project!
    * Added Include mapper[beta] for IWYU, works as public-public include mapping.
    * Include What You Use additions:
