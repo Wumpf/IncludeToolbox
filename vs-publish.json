@@ -1,6 +1,6 @@
 {
   "$schema": "http://json.schemastore.org/vsix-publish",
-  "categories": [ "other", "coding", "tools" ],
+  "categories": [ "other", "coding" ],
   "identity": {
     "internalName": "InsertGuid",
     "tags": [ "C", "C++", "include", "iwyu", "formatting", "code", "include what you use"]
