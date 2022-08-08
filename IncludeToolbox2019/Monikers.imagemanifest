@@ -44,7 +44,7 @@
     </Image>
     <Image Guid="$(MonikersGuid)" ID="$(IncludeFormatterPackage)">
       <Source Uri="$(Resources)/IncludeFormatterPackage.png">
-        <Size Value="64" />
+        <Size Value="90" />
       </Source>
     </Image>
     <Image Guid="$(MonikersGuid)" ID="$(IncludeGraphToolbarIcons_0)">

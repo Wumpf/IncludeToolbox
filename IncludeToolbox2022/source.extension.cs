@@ -12,7 +12,7 @@ namespace IncludeToolbox
         public const string Description = @"Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning.";
         public const string Language = "en-US";
         public const string Version = "3.0.0";
-        public const string Author = "Ilya Doroshenko";
+        public const string Author = "Agrael";
         public const string Tags = "Include, Include What You Use, IWYU, Include Formatting, Include Sorting, #include, Include Removal";
     }
 }
