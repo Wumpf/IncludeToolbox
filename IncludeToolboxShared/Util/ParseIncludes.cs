@@ -18,7 +18,7 @@ namespace IncludeToolbox
         public string file = "";
         public DelimiterMode delimiter = DelimiterMode.Unchanged;
         public string_view span;
-        public string_view file_subspan;
+        public string_view file_subspan = new();
         public int line = 0;
         public bool keep = false;
 
