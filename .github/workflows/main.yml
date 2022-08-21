@@ -60,7 +60,7 @@ jobs:
         path: /_built/**/*.vsix
 
   publish:
-    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && contains(github.event.head_commit.message, '[release]' }}
+    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && contains(github.event.head_commit.message, '[release]') }}
     needs: build
     runs-on: windows-latest
 
