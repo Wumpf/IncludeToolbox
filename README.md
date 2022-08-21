@@ -112,10 +112,11 @@ Requires fixes.
     Look in the output window for Include Toolbox to get more information.
 
 # Version History
-* 3.1.0 
+* 3.1.22 
    * New Include Format parsing, performed using project Lexer
    * Small fixes and DTE reduction
-* 3.0.0 
+* 3.0.0
+   * Versions have new pattern (enforced by github pipelines) Major.Minor.Build, the build number does not decrease.
    * New SDK and Tools. General renewal. Visual Studio 2022 support, dropped support for 2015 and 2017.
    * Refactoring of IWYU, new code and new feature set.
    * Some features are dropped for now, until fixed. 
