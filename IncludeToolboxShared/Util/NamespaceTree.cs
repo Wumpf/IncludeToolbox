@@ -10,6 +10,8 @@ namespace IncludeToolbox
         private readonly TType _type;
         private readonly Dictionary<string, DeclNode> _children = new();
 
+        public string LineBreak { get; set; } = "\n";
+
         public DeclNode(TType ty = TType.Null)
         {
             _type = ty;
@@ -55,14 +57,14 @@ namespace IncludeToolbox
         {
             var o = "";
             if (_type != TType.Namespace)
-                return $"{Type()} {s};\n";
+                return $"{Type()} {s};" + LineBreak;
 
             if (c17 && _children.Count == 1 && _children.First().Value._type == TType.Namespace)
-                return $"namespace {s}::{ new string(_children.First().Value.ToString(c17, _children.First().Key).Skip(10).ToArray())}\n";
+                return $"namespace {s}::{ new string(_children.First().Value.ToString(c17, _children.First().Key).Skip(10).ToArray())}" + LineBreak;
 
             foreach (var item in _children)
                 o += '\t' + item.Value.ToString(c17, item.Key);
-            return $"namespace {s}\n{{\n{o}}}\n";
+            return $"namespace {s}{LineBreak}{{{LineBreak}{o}}}{LineBreak}";
         }
         public string ToString(bool c17)
         {

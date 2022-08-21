@@ -25,7 +25,7 @@ namespace IncludeToolbox
         {
             int[] line = new int[2];
             line[0] = text.IndexOf("#include"); //first
-            line[1] = text.IndexOf("\n", text.LastIndexOf("#include")) - line[0]; //last
+            line[1] = text.IndexOf("\n", text.LastIndexOf("#include")) - line[0] + 1; //last
             return new Span(line[0], line[1]);
         }
 
@@ -127,7 +127,16 @@ namespace IncludeToolbox
                 var rem_i = retasks.Includes.Where(s => s.span.begin > sep_index);
 
 
-                DeclNode tree = new(Lexer.TType.Namespace);
+                foreach (var item in add_i)
+                {
+                    edit.Insert(parsed.LastInclude, lb + item.span.str(output));
+                }
+
+                DeclNode tree = new(Lexer.TType.Namespace)
+                {
+                    LineBreak = lb
+                };
+
                 if (settings.MoveDecls)
                 {
                     tree.AddChildren(parsed.Declarations.Where(s => !rem_f.Contains(s)));
@@ -140,10 +149,7 @@ namespace IncludeToolbox
                 edit.Insert(parsed.LastInclude, lb + result);
 
 
-                foreach (var item in add_i)
-                {
-                    edit.Insert(parsed.LastInclude, lb + item.span.str(output));
-                }
+
                 if (!settings.MoveDecls)
                     foreach (var task in rem_f)
                     {
