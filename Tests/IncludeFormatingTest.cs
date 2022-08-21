@@ -1,285 +1,285 @@
-﻿using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using IncludeToolbox.Formatter;
+﻿//using System.Linq;
+//using Microsoft.VisualStudio.TestTools.UnitTesting;
+//using IncludeToolbox.Formatter;
 
-namespace Tests
-{
-    [TestClass]
-    public class IncludeFormatingTest
-    {
-        private static string sourceCode_NoBlanks =
-@"#include ""a.h""
-#include <b.hpp>
-#include ""a.h""
-#include ""filename.h""
-#include <b.hpp>
-#include <d_firstanyways>
-#include <e_secondanyways>
-#include <e_secondanyways>
-#include <c.hpp>
-#include <d_firstanyways>";
+//namespace Tests
+//{
+//    [TestClass]
+//    public class IncludeFormatingTest
+//    {
+//        private static string sourceCode_NoBlanks =
+//@"#include ""a.h""
+//#include <b.hpp>
+//#include ""a.h""
+//#include ""filename.h""
+//#include <b.hpp>
+//#include <d_firstanyways>
+//#include <e_secondanyways>
+//#include <e_secondanyways>
+//#include <c.hpp>
+//#include <d_firstanyways>";
 
-        private static string sourceCode_WithBlanks =
-@"#include ""c_third""
+//        private static string sourceCode_WithBlanks =
+//@"#include ""c_third""
 
-#include ""filename.h""
+//#include ""filename.h""
 
-#include ""z_first""
+//#include ""z_first""
 
-#include <b_second>
-#include <b_second>
-// A comment
-#include ""z_first""
+//#include <b_second>
+//#include <b_second>
+//// A comment
+//#include ""z_first""
 
-#include <b_second>
-#include ""filename.h""";
+//#include <b_second>
+//#include ""filename.h""";
 
-        [TestMethod]
-        public void Sorting_BlanksAfterRegexGroup()
-        {
-            // Blanks after groups.
-            string expectedFormatedCode_NoBlanks =
-@"#include ""filename.h""
+//        [TestMethod]
+//        public void Sorting_BlanksAfterRegexGroup()
+//        {
+//            // Blanks after groups.
+//            string expectedFormatedCode_NoBlanks =
+//@"#include ""filename.h""
 
-#include <d_firstanyways>
-#include <e_secondanyways>
+//#include <d_firstanyways>
+//#include <e_secondanyways>
 
-#include ""a.h""
-#include <b.hpp>
-#include <c.hpp>
-
-
-
-";
-
-            string expectedFormatedCode_WithBlanks =
-@"#include ""filename.h""
-
-#include <b_second>
-
-#include ""c_third""
-
-#include ""z_first""
-
-// A comment
+//#include ""a.h""
+//#include <b.hpp>
+//#include <c.hpp>
 
 
 
-";
+//";
 
+//            string expectedFormatedCode_WithBlanks =
+//@"#include ""filename.h""
 
-            var settings = new IncludeToolbox.FormatOptions();
-            settings.SortByType = IncludeToolbox.TypeSorting.None;
-            settings.PrecedenceRegexes = new string[]
-                {
-                    IncludeToolbox.RegexUtils.CurrentFileNameKey,
-                    ".+_.+"
-                };
-            settings.BlankAfterRegexGroupMatch = true;
-            settings.RemoveEmptyLines = false;
+//#include <b_second>
 
+//#include ""c_third""
 
-            string formatedCode = IncludeFormatter.FormatIncludes(sourceCode_NoBlanks, "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual(expectedFormatedCode_NoBlanks, formatedCode);
-            formatedCode = IncludeFormatter.FormatIncludes(sourceCode_WithBlanks, "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual(expectedFormatedCode_WithBlanks, formatedCode);
-        }
+//#include ""z_first""
 
-        [TestMethod]
-        public void Sorting_AngleBracketsFirst()
-        {
-            // With sort by type.
-            string expectedFormatedCode_NoBlanks =
-@"#include <d_firstanyways>
-#include <e_secondanyways>
-#include <b.hpp>
-#include <c.hpp>
-#include ""filename.h""
-#include ""a.h""
+//// A comment
 
 
 
-";
+//";
 
 
-            string expectedFormatedCode_WithBlanks =
-@"#include <b_second>
-
-#include ""filename.h""
-
-#include ""c_third""
-
-#include ""z_first""
-
-// A comment
-
+//            var settings = new IncludeToolbox.FormatOptions();
+//            settings.SortByType = IncludeToolbox.TypeSorting.None;
+//            settings.PrecedenceRegexes = new string[]
+//                {
+//                    IncludeToolbox.RegexUtils.CurrentFileNameKey,
+//                    ".+_.+"
+//                };
+//            settings.BlankAfterRegexGroupMatch = true;
+//            settings.RemoveEmptyLines = false;
 
 
-";
+//            string formatedCode = IncludeFormatter.FormatIncludes(sourceCode_NoBlanks, "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual(expectedFormatedCode_NoBlanks, formatedCode);
+//            formatedCode = IncludeFormatter.FormatIncludes(sourceCode_WithBlanks, "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual(expectedFormatedCode_WithBlanks, formatedCode);
+//        }
+
+//        [TestMethod]
+//        public void Sorting_AngleBracketsFirst()
+//        {
+//            // With sort by type.
+//            string expectedFormatedCode_NoBlanks =
+//@"#include <d_firstanyways>
+//#include <e_secondanyways>
+//#include <b.hpp>
+//#include <c.hpp>
+//#include ""filename.h""
+//#include ""a.h""
 
 
-            var settings = new IncludeToolbox.FormatOptions();
-            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
-            settings.PrecedenceRegexes = new string[]
-            {
-                    IncludeToolbox.RegexUtils.CurrentFileNameKey,
-                    ".+_.+"
-            };
-            settings.BlankAfterRegexGroupMatch = false;
-            settings.RemoveEmptyLines = false;
 
-            string formatedCode = IncludeFormatter.FormatIncludes(sourceCode_NoBlanks, "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual(expectedFormatedCode_NoBlanks, formatedCode);
-            formatedCode = IncludeFormatter.FormatIncludes(sourceCode_WithBlanks, "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual(expectedFormatedCode_WithBlanks, formatedCode);
-        }
-
-        [TestMethod]
-        public void Sorting_DontRemoveDuplicates()
-        {
-            // With sort by type.
-            string expectedFormatedCode_NoBlanks =
-@"#include ""filename.h""
-
-#include <d_firstanyways>
-#include <d_firstanyways>
-#include <e_secondanyways>
-#include <e_secondanyways>
-
-#include ""a.h""
-#include ""a.h""
-#include <b.hpp>
-#include <b.hpp>
-#include <c.hpp>";
+//";
 
 
-            string expectedFormatedCode_WithBlanks =
-@"#include ""filename.h""
-#include ""filename.h""
+//            string expectedFormatedCode_WithBlanks =
+//@"#include <b_second>
 
-#include <b_second>
-#include <b_second>
-#include <b_second>
-// A comment
-#include ""c_third""
-#include ""z_first""
-#include ""z_first""";
+//#include ""filename.h""
+
+//#include ""c_third""
+
+//#include ""z_first""
+
+//// A comment
 
 
-            var settings = new IncludeToolbox.FormatOptions();
-            settings.SortByType = IncludeToolbox.TypeSorting.None;
-            settings.PrecedenceRegexes = new string[]
-            {
-                    IncludeToolbox.RegexUtils.CurrentFileNameKey,
-                    ".+_.+"
-            };
-            settings.BlankAfterRegexGroupMatch = true;
-            settings.RemoveEmptyLines = true;
-            settings.RemoveDuplicates = false;
 
-            string formatedCode = IncludeFormatter.FormatIncludes(sourceCode_NoBlanks, "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual(expectedFormatedCode_NoBlanks, formatedCode);
-            formatedCode = IncludeFormatter.FormatIncludes(sourceCode_WithBlanks, "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual(expectedFormatedCode_WithBlanks, formatedCode);
-        }
+//";
 
-        [TestMethod]
-        public void RemoveEmptyLines()
-        {
-            string expectedFormatedCode_WithBlanks =
-@"#include ""filename.h""
-#include <b_second>
-#include ""c_third""
-#include ""z_first""
-// A comment";
 
-            var settings = new IncludeToolbox.FormatOptions();
-            settings.SortByType = IncludeToolbox.TypeSorting.None;
-            settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
-            settings.BlankAfterRegexGroupMatch = false;
-            settings.RemoveEmptyLines = true;
+//            var settings = new IncludeToolbox.FormatOptions();
+//            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
+//            settings.PrecedenceRegexes = new string[]
+//            {
+//                    IncludeToolbox.RegexUtils.CurrentFileNameKey,
+//                    ".+_.+"
+//            };
+//            settings.BlankAfterRegexGroupMatch = false;
+//            settings.RemoveEmptyLines = false;
 
-            string formatedCode = IncludeFormatter.FormatIncludes(sourceCode_WithBlanks, "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual(expectedFormatedCode_WithBlanks, formatedCode);
-        }
+//            string formatedCode = IncludeFormatter.FormatIncludes(sourceCode_NoBlanks, "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual(expectedFormatedCode_NoBlanks, formatedCode);
+//            formatedCode = IncludeFormatter.FormatIncludes(sourceCode_WithBlanks, "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual(expectedFormatedCode_WithBlanks, formatedCode);
+//        }
 
-        [TestMethod]
-        public void EmptySelection()
-        {
-            // Activate all features
-            var settings = new IncludeToolbox.FormatOptions();
-            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
-            settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
-            settings.BlankAfterRegexGroupMatch = true;
-            settings.RemoveEmptyLines = true;
-            settings.DelimiterFormatting = IncludeToolbox.DelimiterMode.AngleBrackets;
-            settings.SlashFormatting = IncludeToolbox.SlashMode.BackSlash;
+//        [TestMethod]
+//        public void Sorting_DontRemoveDuplicates()
+//        {
+//            // With sort by type.
+//            string expectedFormatedCode_NoBlanks =
+//@"#include ""filename.h""
 
-            string formatedCode = IncludeFormatter.FormatIncludes("", "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual("", formatedCode);
-        }
+//#include <d_firstanyways>
+//#include <d_firstanyways>
+//#include <e_secondanyways>
+//#include <e_secondanyways>
 
-        [TestMethod]
-        public void OtherPreprocessorDirectives()
-        {
-            string source =
-@"#pragma once
-// SomeComment
-#include ""z""
-#include <b>
+//#include ""a.h""
+//#include ""a.h""
+//#include <b.hpp>
+//#include <b.hpp>
+//#include <c.hpp>";
 
-#include ""filename.h""
 
-#if test
-#include <d>
-// A comment
-#include ""a9""
-#include <d>
-#include <c>
-#else
-#include <d>
+//            string expectedFormatedCode_WithBlanks =
+//@"#include ""filename.h""
+//#include ""filename.h""
 
-#include <a3>   // comment
+//#include <b_second>
+//#include <b_second>
+//#include <b_second>
+//// A comment
+//#include ""c_third""
+//#include ""z_first""
+//#include ""z_first""";
+
+
+//            var settings = new IncludeToolbox.FormatOptions();
+//            settings.SortByType = IncludeToolbox.TypeSorting.None;
+//            settings.PrecedenceRegexes = new string[]
+//            {
+//                    IncludeToolbox.RegexUtils.CurrentFileNameKey,
+//                    ".+_.+"
+//            };
+//            settings.BlankAfterRegexGroupMatch = true;
+//            settings.RemoveEmptyLines = true;
+//            settings.RemoveDuplicates = false;
+
+//            string formatedCode = IncludeFormatter.FormatIncludes(sourceCode_NoBlanks, "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual(expectedFormatedCode_NoBlanks, formatedCode);
+//            formatedCode = IncludeFormatter.FormatIncludes(sourceCode_WithBlanks, "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual(expectedFormatedCode_WithBlanks, formatedCode);
+//        }
+
+//        [TestMethod]
+//        public void RemoveEmptyLines()
+//        {
+//            string expectedFormatedCode_WithBlanks =
+//@"#include ""filename.h""
+//#include <b_second>
+//#include ""c_third""
+//#include ""z_first""
+//// A comment";
+
+//            var settings = new IncludeToolbox.FormatOptions();
+//            settings.SortByType = IncludeToolbox.TypeSorting.None;
+//            settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
+//            settings.BlankAfterRegexGroupMatch = false;
+//            settings.RemoveEmptyLines = true;
+
+//            string formatedCode = IncludeFormatter.FormatIncludes(sourceCode_WithBlanks, "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual(expectedFormatedCode_WithBlanks, formatedCode);
+//        }
+
+//        [TestMethod]
+//        public void EmptySelection()
+//        {
+//            // Activate all features
+//            var settings = new IncludeToolbox.FormatOptions();
+//            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
+//            settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
+//            settings.BlankAfterRegexGroupMatch = true;
+//            settings.RemoveEmptyLines = true;
+//            settings.DelimiterFormatting = IncludeToolbox.DelimiterMode.AngleBrackets;
+//            settings.SlashFormatting = IncludeToolbox.SlashMode.BackSlash;
+
+//            string formatedCode = IncludeFormatter.FormatIncludes("", "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual("", formatedCode);
+//        }
+
+//        [TestMethod]
+//        public void OtherPreprocessorDirectives()
+//        {
+//            string source =
+//@"#pragma once
+//// SomeComment
+//#include ""z""
+//#include <b>
+
+//#include ""filename.h""
+
+//#if test
+//#include <d>
+//// A comment
+//#include ""a9""
+//#include <d>
+//#include <c>
+//#else
+//#include <d>
+
+//#include <a3>   // comment
+////#endif
+
+//#include <a2>
 //#endif
+//#include <b>
+//#include <a1>";
 
-#include <a2>
-#endif
-#include <b>
-#include <a1>";
+//            string expectedFormatedCode =
+//@"#pragma once
+//// SomeComment
+//#include <b>
+//#include ""filename.h""
 
-            string expectedFormatedCode =
-@"#pragma once
-// SomeComment
-#include <b>
-#include ""filename.h""
+//#include ""z""
 
-#include ""z""
+//#if test
+//#include <c>
+//// A comment
+//#include <d>
+//#include ""a9""
 
-#if test
-#include <c>
-// A comment
-#include <d>
-#include ""a9""
+//#else
+//#include <a2>
 
-#else
-#include <a2>
+//#include <a3>   // comment
+////#endif
 
-#include <a3>   // comment
+//#include <d>
 //#endif
+//#include <a1>
+//#include <b>";
 
-#include <d>
-#endif
-#include <a1>
-#include <b>";
+//            var settings = new IncludeToolbox.FormatOptions();
+//            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
+//            settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
+//            settings.BlankAfterRegexGroupMatch = false;
+//            settings.RemoveEmptyLines = false;
 
-            var settings = new IncludeToolbox.FormatOptions();
-            settings.SortByType = IncludeToolbox.TypeSorting.AngleBracketsFirst;
-            settings.PrecedenceRegexes = new string[] { IncludeToolbox.RegexUtils.CurrentFileNameKey };
-            settings.BlankAfterRegexGroupMatch = false;
-            settings.RemoveEmptyLines = false;
-
-            string formatedCode = IncludeFormatter.FormatIncludes(source, "filename.cpp", new string[] { }, settings);
-            Assert.AreEqual(expectedFormatedCode, formatedCode);
-        }
-}
-}
+//            string formatedCode = IncludeFormatter.FormatIncludes(source, "filename.cpp", new string[] { }, settings);
+//            Assert.AreEqual(expectedFormatedCode, formatedCode);
+//        }
+//}
+//}
