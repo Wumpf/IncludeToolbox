@@ -1,4 +1,6 @@
-# Include Toolbox
+# Include Toolbox 
+[![Build](https://github.com/Agrael1/IncludeToolbox/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/Agrael1/IncludeToolbox/actions/workflows/main.yml)
+
 **_Tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning._**  
 
 Include Toolbox consists of 4 different tools. All of them are only applicable to VC++ projects.
@@ -110,7 +112,9 @@ Requires fixes.
     Look in the output window for Include Toolbox to get more information.
 
 # Version History
-
+* 3.1.0 
+   * New Include Format parsing, performed using project Lexer
+   * Small fixes and DTE reduction
 * 3.0.0 
    * New SDK and Tools. General renewal. Visual Studio 2022 support, dropped support for 2015 and 2017.
    * Refactoring of IWYU, new code and new feature set.
