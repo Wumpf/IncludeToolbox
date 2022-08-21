@@ -26,8 +26,9 @@ The behavior of this command is controlled by various options which can be confi
         Optionally change "" to <> or vice versa
     *   Slash Mode  
         Optionally changes / to \ or vice versa
-    *   Remove Empty Lines  
+    *   Remove Empty Lines 
         Optionally removes empty lines within the selection
+        
 *   Path Reformatting
     *   Ignore File Relative  
         If true, the local file path will not be considered for reformatting the path
@@ -39,6 +40,8 @@ The behavior of this command is controlled by various options which can be confi
         Every line gives a regex - if an include matches a regex, it has precedence over all other includes that do not match any, or a later regex. Multiple includes that match the same regex are still alphabetically sorted.
     *   Sort by Include Type  
         Optionally puts all inclues with either quotes or angle brackets first.
+    *   Remove duplicates  
+        Removes duplicate headers. May be suppressed using `//IWYU pragma: keep` e.g. for maintaining strong ordering dependency
 
 All operations are performed in the order in which they occur on the option page.
 
@@ -58,7 +61,7 @@ The exact behavior of this command can be controlled in _Tools>Options>Include T
 *   Removal Order  
     Wheater the tool should run from top to bottom or bottom to top (this can make a difference on the end result)
 
-To suppress removal of a single include, add a comment to its line containin_g_ _$include-toolbox-preserve$_
+To suppress removal of a single include, add a comment to its line containing _$include-toolbox-preserve$_
 
 ## Include-What-You-Use Integration
 
@@ -115,6 +118,7 @@ Requires fixes.
 * 3.1.22 
    * New Include Format parsing, performed using project Lexer
    * Small fixes and DTE reduction
+   * Unified formatting pragma for duplicate removal
 * 3.0.0
    * Versions have new pattern (enforced by github pipelines) Major.Minor.Build, the build number does not decrease.
    * New SDK and Tools. General renewal. Visual Studio 2022 support, dropped support for 2015 and 2017.
