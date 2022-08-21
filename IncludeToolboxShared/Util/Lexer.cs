@@ -4,14 +4,28 @@ namespace IncludeToolbox
 {
     public class Lexer
     {
+        public struct Desc
+        {
+            public bool ignore_ifdefs = true;
+            public bool newlines = false;
+            public bool commentaries = false;
+
+            public Desc()
+            {
+            }
+        }
         public enum TType
         {
             Null,
             Terminal,
+            Newline,
+            Commentary,
+            MLCommentary,
             Namespace,
             Class,
             Struct,
             Enum,
+            EnumClass,
             ID,
             AngleID,
             QuoteID,
@@ -20,6 +34,14 @@ namespace IncludeToolbox
             Semicolon,
             OpenBr,
             CloseBr,
+
+            If,
+            Ifdef,
+            Ifndef,
+            Elif,
+            Else,
+            Elifdef,
+            Endif,
 
             T0,
             T1,
@@ -32,7 +54,6 @@ namespace IncludeToolbox
             T8,
             T9,
 
-            EnumClass
         }
         public ref struct Token
         {
@@ -94,7 +115,24 @@ namespace IncludeToolbox
             internal void SkipComment()
             {
                 int rem = code.IndexOf('\n');
+                if(rem == -1)
+                {
+                    code = "".AsSpan();
+                    return;
+                }
                 RemovePrefix(rem + 1);
+            }
+            internal Token TakeComment()
+            {
+                int rem = code.IndexOf('\n');
+                if(rem == -1)
+                {
+                    code = "".AsSpan();
+                    return new(TType.Commentary, current_pos - 1, original.Slice(current_pos - 1));
+                }
+                Token tk = new(TType.Commentary, current_pos - 1, original.Slice(current_pos - 1, rem + 1));
+                RemovePrefix(rem + 1);
+                return tk;
             }
 
             internal void SkipCommentML()
@@ -112,6 +150,23 @@ namespace IncludeToolbox
                     }
                 }
             }
+            internal Token TakeCommentML()
+            {
+                int start = current_pos - 1;
+
+                _ = Fetch(); //remove first *
+                while (true)
+                {
+                    int rem = code.IndexOf('*');
+                    RemovePrefix(rem + 1);
+                    if (rem == -1) return new();
+                    if (Prefetch() == '/')
+                    {
+                        RemovePrefix(1);
+                        return new Token(TType.MLCommentary,start, original.Slice(start, current_pos - start));
+                    }
+                }
+            }
 
             private void RemovePrefix(int n)
             {
@@ -123,7 +178,7 @@ namespace IncludeToolbox
             private int FindDelim()
             {
                 int i = 0;
-                while (i < code.Length && (char.IsLetterOrDigit(code[i])|| code[i] == '_')) i++;
+                while (i < code.Length && (char.IsLetterOrDigit(code[i]) || code[i] == '_')) i++;
                 return i;
             }
             private int FindBrace(char brace)
@@ -135,12 +190,17 @@ namespace IncludeToolbox
                 return i + 1;
             }
 
+            private bool IsDelim(char c)
+            {
+                return !char.IsLetterOrDigit(c) && c != '_';
+            }
+
             internal Token TryAssociateWith(ReadOnlySpan<char> tk, TType type)
             {
                 int pos = FindDelim();
-                var sl = code.Slice(0, pos);
+                var sl = code.Slice(0, pos + 1);
 
-                Token t = sl.StartsWith(tk) ? (new(type, current_pos - 1)) : (new());
+                Token t = sl.StartsWith(tk) && IsDelim(sl[tk.Length]) ? (new(type, current_pos - 1)) : (new());
                 if (!t.valid()) return t;
                 RemovePrefix(pos);
                 return t;
@@ -173,20 +233,33 @@ namespace IncludeToolbox
                 RemovePrefix(i);
             }
 
-            public Token GetToken(bool ex)
+            private Token GetToken(bool expect_id, Desc desc = default)
             {
                 Token tk = new();
                 while (!Empty())
                 {
                     char c = Fetch();
 
+                    if (desc.newlines && c == '\n')
+                        return new Token(TType.Newline, Position);
+
                     switch (c)
                     {
                         case '/':
                             switch (Prefetch())
                             {
-                                case '/': SkipComment(); break;
-                                case '*': SkipCommentML(); break;
+                                case '/':
+                                    if (desc.commentaries)
+                                        return TakeComment();
+                                    SkipComment();
+                                    if (desc.newlines)
+                                        return new Token(TType.Newline);
+                                    break;
+                                case '*':
+                                    if (desc.commentaries)
+                                        return TakeCommentML();
+                                    SkipCommentML();
+                                    break;
                                 default: break;
                             }
                             continue;
@@ -200,7 +273,28 @@ namespace IncludeToolbox
                             tk = TryAssociateWith("truct".AsSpan(), TType.Struct);
                             break;
                         case '#':
-                            tk = TryAssociateWith("include".AsSpan(), TType.Include);
+                            if (desc.ignore_ifdefs)
+                                tk = TryAssociateWith("include".AsSpan(), TType.Include);
+                            else
+                            {
+                                //stupid, but rarely occurring
+                                tk = TryAssociateWith("include".AsSpan(), TType.Include);
+                                if (tk.valid()) return tk;
+                                tk = TryAssociateWith("if".AsSpan(), TType.If);
+                                if (tk.valid()) return tk;
+                                tk = TryAssociateWith("ifdef".AsSpan(), TType.Ifdef);
+                                if (tk.valid()) return tk;
+                                tk = TryAssociateWith("ifndef".AsSpan(), TType.Ifndef);
+                                if (tk.valid()) return tk;
+                                tk = TryAssociateWith("elif".AsSpan(), TType.Elif);
+                                if (tk.valid()) return tk;
+                                tk = TryAssociateWith("else".AsSpan(), TType.Else);
+                                if (tk.valid()) return tk;
+                                tk = TryAssociateWith("elifdef".AsSpan(), TType.Elifdef);
+                                if (tk.valid()) return tk;
+                                tk = TryAssociateWith("endif".AsSpan(), TType.Endif);
+                                if (tk.valid()) return tk;
+                            }
                             break;
                         case 'e':
                             tk = TryAssociateWith("num".AsSpan(), TType.Enum);
@@ -217,7 +311,7 @@ namespace IncludeToolbox
                             break;
                         case '<':
                         case '"':
-                            if (ex)
+                            if (expect_id)
                                 tk = GetHeader(c);
                             break;
                         case '{':
@@ -231,12 +325,16 @@ namespace IncludeToolbox
                     }
 
                     if (tk.valid()) return tk;
-                    if (ex && !char.IsWhiteSpace(c))
+                    if (expect_id && !char.IsWhiteSpace(c))
                         return GetID();
                     else if (!char.IsWhiteSpace(c))
                         Skip();
                 }
                 return tk;
+            }
+            public Token GetToken(bool expect_id, bool ignore_ifdefs = true, bool newlines = false, bool commentaries = false)
+            {
+                return GetToken(expect_id, new() { ignore_ifdefs = ignore_ifdefs, newlines = newlines, commentaries = commentaries });
             }
         }
     }

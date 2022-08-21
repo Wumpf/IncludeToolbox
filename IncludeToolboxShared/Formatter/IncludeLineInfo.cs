@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Text;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,25 +42,25 @@ namespace IncludeToolbox.Formatter
         /// Parses a given text into IncludeLineInfo objects.
         /// </summary>
         /// <returns>A list of parsed lines.</returns>
-        public static List<IncludeLineInfo> ParseIncludes(string text, ParseOptions options)
+        public static List<IncludeLineInfo> ParseIncludes(SnapshotSpan text, ParseOptions options)
         {
-            StringReader reader = new StringReader(text);
+            var snap = text.Snapshot;
+            var lines = snap.Lines.Skip(snap.GetLineNumberFromPosition(text.Start.Position) - 1).Take(text.Length);
 
             var outInfo = new List<IncludeLineInfo>();
 
             // Simplistic parsing.
             int openMultiLineComments = 0;
             int openIfdefs = 0;
-            string lineText;
-            for (int lineNumber = 0; true; ++lineNumber)
-            {
-                lineText = reader.ReadLine();
-                if (lineText == null)
-                    break;
 
-                if (options.HasFlag(ParseOptions.RemoveEmptyLines) && string.IsNullOrWhiteSpace(lineText))
+            foreach (ITextSnapshotLine line in lines)
+            {
+                if (options.HasFlag(ParseOptions.RemoveEmptyLines) 
+                    && string.IsNullOrWhiteSpace(line.GetText()))
                     continue;
 
+                string lineText = line.GetText();
+                int lineNumber = line.LineNumber;
                 int commentedSectionStart = int.MaxValue;
                 int commentedSectionEnd = int.MaxValue;
 

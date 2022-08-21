@@ -29,33 +29,30 @@ namespace IncludeToolbox
             return new Span(line[0], line[1]);
         }
 
-        public static string GetLineBreak(ITextEdit edit)
-        {
-            return edit.Snapshot.Lines.ElementAt(0).GetLineBreakText();
-        }
-
-        public static async Task<string> PreformatAsync(string text, string file)
-        {
-            var include_directories = await VCUtil.GetIncludeDirsAsync();
-            return Formatter.IncludeFormatter.FormatIncludes(text, file, include_directories, await FormatOptions.GetLiveInstanceAsync());
-        }
-
         public static async Task FormatAsync(DocumentView doc)
         {
-            using var xedit = doc.TextBuffer.CreateEdit();
-            var text = xedit.Snapshot.GetText();
+            var include_directories = await VCUtil.GetIncludeDirsAsync();
+            var settings = await FormatOptions.GetLiveInstanceAsync();
+            using var edit = doc.TextBuffer.CreateEdit();
+            var text = edit.Snapshot.GetText();
             var span = IWYUApply.GetIncludeSpan(text);
-            var result = await IWYUApply.PreformatAsync(new SnapshotSpan(xedit.Snapshot, span).GetText(), doc.FilePath);
-            xedit.Replace(span, result);
-            xedit.Apply();
+
+            var result = Formatter.IncludeFormatter.FormatIncludes(
+                text.AsSpan().Slice(span.Start, span.Length),
+                doc.FilePath,
+                include_directories, settings
+                );
+
+            Formatter.IncludeFormatter.ApplyChanges(result, edit, text, span.Start);
+            edit.Apply();
         }
 
         public static void ApplyCheap(ITextEdit edit, string result, bool commentary)
         {
             if (!commentary)
             {
-                var lb = edit.Snapshot.Lines.ElementAt(0).GetLineBreakText();
-                lb = string.IsNullOrEmpty(lb) ? "\r\n" : lb;
+                var lb = Utils.GetLineBreak(edit);
+
                 result = string.Join(lb, result.Split('\n')
                     .Select(s =>
                     {
@@ -119,7 +116,7 @@ namespace IncludeToolbox
                 string path = part.Substring(0, part.IndexOf(':', 3));
                 var doc = await VS.Documents.OpenAsync(path);
                 using var edit = doc.TextBuffer.CreateEdit();
-
+                var lb = Utils.GetLineBreak(edit);
 
 
                 var add_f = retasks.Declarations.Where(s => s.span.begin < sep_index);
@@ -139,12 +136,12 @@ namespace IncludeToolbox
 
                 tree.AddChildren(add_f);
                 string result = tree.ToString(std >= Standard.cpp17);
-                edit.Insert(parsed.LastInclude, '\n' + result);
+                edit.Insert(parsed.LastInclude, lb + result);
 
 
                 foreach (var item in add_i)
                 {
-                    edit.Insert(parsed.LastInclude, '\n' + item.span.str(output));
+                    edit.Insert(parsed.LastInclude, lb + item.span.str(output));
                 }
                 if (!settings.MoveDecls)
                     foreach (var task in rem_f)

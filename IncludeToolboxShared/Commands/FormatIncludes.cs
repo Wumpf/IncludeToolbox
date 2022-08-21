@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Community.VisualStudio.Toolkit;
@@ -18,7 +19,7 @@ namespace IncludeToolbox.Commands
             if (viewHost == null) return new SnapshotSpan();
             var sel = viewHost.Selection.StreamSelectionSpan;
             var start = new SnapshotPoint(viewHost.TextSnapshot, sel.Start.Position).GetContainingLine().Start;
-            var end = new SnapshotPoint(viewHost.TextSnapshot, sel.End.Position).GetContainingLine().End;
+            var end = new SnapshotPoint(viewHost.TextSnapshot, sel.End.Position).GetContainingLine().EndIncludingLineBreak;
 
             return new SnapshotSpan(start, end);
         }
@@ -33,8 +34,8 @@ namespace IncludeToolbox.Commands
         protected override void BeforeQueryStatus(EventArgs e)
         {
             var selection_span = GetSelectionLinesAsync().Result;
-            var lines = Formatter.IncludeLineInfo.ParseIncludes(selection_span.GetText(), Formatter.ParseOptions.RemoveEmptyLines);
-            Command.Visible = lines.Any(x => x.ContainsActiveInclude);
+            var lines = Parser.ParseInclues(selection_span.GetText().AsSpan(), false);// faster a times! tested with QPC 
+            Command.Visible = lines.Count() != 0;
         }
 
 
@@ -47,13 +48,13 @@ namespace IncludeToolbox.Commands
             // Read.
             var selection_span = await GetSelectionLinesAsync();
             var include_directories = await VCUtil.GetIncludeDirsAsync();
-
+            var text = selection_span.GetText();
             // Format
-            string formatedText = Formatter.IncludeFormatter.FormatIncludes(selection_span.GetText(), doc.FilePath, include_directories, settings);
+            var formated_lines = Formatter.IncludeFormatter.FormatIncludes(text.AsSpan(), doc.FilePath, include_directories, settings);
 
             // Overwrite.
             using var edit = doc.TextBuffer.CreateEdit();
-            edit.Replace(selection_span, formatedText);
+            Formatter.IncludeFormatter.ApplyChanges(formated_lines, edit, text, selection_span.Start, settings.RemoveEmptyLines);
             edit.Apply();
         }
     }

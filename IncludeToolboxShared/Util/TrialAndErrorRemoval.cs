@@ -125,8 +125,10 @@ namespace IncludeToolbox
             document.Activate();
             var documentTextView = VSUtils.GetCurrentTextViewHost();
             textBuffer = documentTextView.TextView.TextBuffer;
-            string documentText = documentTextView.TextView.TextSnapshot.GetText();
-            IEnumerable<Formatter.IncludeLineInfo> includeLines = Formatter.IncludeLineInfo.ParseIncludes(documentText, Formatter.ParseOptions.IgnoreIncludesInPreprocessorConditionals | Formatter.ParseOptions.KeepOnlyValidIncludes);
+            var documentText = documentTextView.TextView.TextSnapshot;
+
+            IEnumerable<Formatter.IncludeLineInfo> includeLines 
+                = Formatter.IncludeLineInfo.ParseIncludes(new SnapshotSpan(documentText, 0, documentText.Length), Formatter.ParseOptions.IgnoreIncludesInPreprocessorConditionals | Formatter.ParseOptions.KeepOnlyValidIncludes);
 
             // Optionally skip top most include.
             if (settings.IgnoreFirstInclude)

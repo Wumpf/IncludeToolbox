@@ -142,7 +142,10 @@ namespace IncludeToolbox.Commands
                         if (settings.Format)
                             await IWYUApply.FormatAsync(doc);
                         if (settings.FormatDoc)
+                        {
+                            await doc.WindowFrame.ShowAsync();
                             await VS.Commands.ExecuteAsync(Microsoft.VisualStudio.VSConstants.VSStd2KCmdID.FORMATDOCUMENT);
+                        }
                     }
                 }
             }

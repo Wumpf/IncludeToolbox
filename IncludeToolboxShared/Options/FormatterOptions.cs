@@ -39,7 +39,12 @@ namespace IncludeToolbox
         [Category("Formatting")]
         [DisplayName("Remove Empty Lines")]
         [Description("If true, all empty lines of a include selection will be removed.")]
-        public bool RemoveEmptyLines { get; set; } = true;
+        public bool RemoveEmptyLines { get; set; } = true; 
+        
+        [Category("Formatting")]
+        [DisplayName("Ignore #if blocks")]
+        [Description("If true, all empty lines of an #if block include selection will be ignored.")]
+        public bool IgnoreIfdefs { get; set; } = true;
 
 
 

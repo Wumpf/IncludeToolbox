@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Text;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace IncludeToolbox.Formatter
 {
@@ -10,119 +12,99 @@ namespace IncludeToolbox.Formatter
     {
         public static string FormatPath(string absoluteIncludeFilename, PathMode pathformat, IEnumerable<string> includeDirectories)
         {
-            if (pathformat == PathMode.Absolute)
+            // todo: Treat std library files special?
+
+            if (absoluteIncludeFilename == null) return null;
+
+            int bestLength = int.MaxValue;
+            string bestCandidate = null;
+
+            foreach (string includeDirectory in includeDirectories)
             {
-                return absoluteIncludeFilename;
-            }
-            else
-            {
-                // todo: Treat std library files special?
-                if (absoluteIncludeFilename != null)
+                string proposal = Utils.MakeRelative(includeDirectory, absoluteIncludeFilename);
+
+                if (proposal.Length < bestLength)
                 {
-                    int bestLength = Int32.MaxValue;
-                    string bestCandidate = null;
-
-                    foreach (string includeDirectory in includeDirectories)
+                    if (pathformat == PathMode.Shortest ||
+                        (proposal.IndexOf("../") < 0 && proposal.IndexOf("..\\") < 0))
                     {
-                        string proposal = Utils.MakeRelative(includeDirectory, absoluteIncludeFilename);
-
-                        if (proposal.Length < bestLength)
-                        {
-                            if (pathformat == PathMode.Shortest ||
-                                (proposal.IndexOf("../") < 0 && proposal.IndexOf("..\\") < 0))
-                            {
-                                bestCandidate = proposal;
-                                bestLength = proposal.Length;
-                            }
-                        }
+                        bestCandidate = proposal;
+                        bestLength = proposal.Length;
                     }
-
-                    return bestCandidate;
                 }
             }
-
-            return null;
+            return bestCandidate;
         }
-
-        /// <summary>
-        /// Formats the paths of a given list of include line info.
-        /// </summary>
-        private static void FormatPaths(IEnumerable<IncludeLineInfo> lines, PathMode pathformat, IEnumerable<string> includeDirectories)
+        private static void FormatPaths(IncludeLine[] lines, PathMode pathformat, IEnumerable<string> includeDirectories)
         {
-            if (pathformat == PathMode.Unchanged)
-                return;
-
-            foreach (var line in lines)
+            for (int i = 0; i < lines.Length; i++)
             {
-                string absoluteIncludeDir = line.TryResolveInclude(includeDirectories, out bool resolvedPath);
-                if (resolvedPath)
-                    line.IncludeContent = FormatPath(absoluteIncludeDir, pathformat, includeDirectories) ?? line.IncludeContent;
+                string absoluteIncludeDir = lines[i].Resolve(includeDirectories);
+                if (string.IsNullOrEmpty(absoluteIncludeDir)) continue;
+                var formatted = FormatPath(absoluteIncludeDir, pathformat, includeDirectories);
+                if (string.IsNullOrEmpty(formatted)) continue;
+                lines[i].SetFile(formatted);
             }
         }
 
-        private static void FormatDelimiters(IEnumerable<IncludeLineInfo> lines, DelimiterMode delimiterMode)
+        private static void FormatDelimiters(IncludeLine[] lines, DelimiterMode delimiterMode)
         {
             switch (delimiterMode)
             {
                 case DelimiterMode.AngleBrackets:
-                    foreach (var line in lines)
-                        line.SetDelimiterType(IncludeLineInfo.DelimiterType.AngleBrackets);
+                    for (int i = 0; i < lines.Length; i++)
+                        lines[i].SetDelimiter(DelimiterMode.AngleBrackets);
                     break;
                 case DelimiterMode.Quotes:
-                    foreach (var line in lines)
-                        line.SetDelimiterType(IncludeLineInfo.DelimiterType.Quotes);
+                    for (int i = 0; i < lines.Length; i++)
+                        lines[i].SetDelimiter(DelimiterMode.Quotes);
                     break;
             }
         }
-
-        private static void FormatSlashes(IEnumerable<IncludeLineInfo> lines, SlashMode slashMode)
+        private static void FormatSlashes(IncludeLine[] lines, SlashMode slashMode)
         {
             switch (slashMode)
             {
                 case SlashMode.ForwardSlash:
-                    foreach (var line in lines)
-                        line.IncludeContent = line.IncludeContent.Replace('\\', '/');
+                    for (int i = 0; i < lines.Length; i++)
+                        lines[i].ToForward();
                     break;
                 case SlashMode.BackSlash:
-                    foreach (var line in lines)
-                        line.IncludeContent = line.IncludeContent.Replace('/', '\\');
+                    for (int i = 0; i < lines.Length; i++)
+                        lines[i].ToBackward();
                     break;
             }
         }
 
-        private static List<IncludeLineInfo> SortIncludes(IList<IncludeLineInfo> lines, FormatOptions settings, string documentName)
+        private static IncludeLine[] SortIncludes(IncludeLine[] lines, FormatOptions settings, string documentName)
         {
             string[] precedenceRegexes = RegexUtils.FixupRegexes(settings.PrecedenceRegexes, documentName);
+            List<IncludeLine> outSortedList = new(lines.Length);
 
-            List<IncludeLineInfo> outSortedList = new List<IncludeLineInfo>(lines.Count);
-
-            IEnumerable<IncludeLineInfo> includeBatch;
-            int numConsumedItems = 0;
-
-            do
+            while (lines.Length != 0)
             {
-                // Fill in all non-include items between batches.
-                var nonIncludeItems = lines.Skip(numConsumedItems).TakeWhile(x => !x.ContainsActiveInclude);
-                numConsumedItems += nonIncludeItems.Count();
-                outSortedList.AddRange(nonIncludeItems);
+                int line_n = lines.First().line;
 
-                // Process until we hit a preprocessor directive that is not an include.
-                // Those are boundaries for the sorting which we do not want to cross.
-                includeBatch = lines.Skip(numConsumedItems).TakeWhile(x => x.ContainsActiveInclude || !x.ContainsPreProcessorDirective);
-                numConsumedItems += includeBatch.Count();
+                var pack = lines.TakeWhile(s =>
+                {
+                    bool a = s.line - line_n <= 1;
+                    line_n = s.line;
+                    return a;
+                });
+                var e = pack.ToArray();
+                if (e.Count() > 1)
+                    outSortedList.AddRange(SortIncludeBatch(settings, precedenceRegexes, e));
+                else
+                    outSortedList.AddRange(e);
+                lines = lines.Skip(e.Count()).ToArray();
+            }
 
-            } while (SortIncludeBatch(settings, precedenceRegexes, outSortedList, includeBatch) && numConsumedItems != lines.Count);
-
-            return outSortedList;
+            return outSortedList.ToArray();
         }
-
-        private static bool SortIncludeBatch(FormatOptions settings, string[] precedenceRegexes,
-                                            List<IncludeLineInfo> outSortedList, IEnumerable<IncludeLineInfo> includeBatch)
+        private static IncludeLine[] SortIncludeBatch(FormatOptions settings,
+                                                          string[] precedenceRegexes,
+                                                          IncludeLine[] includeBatch)
         {
-            // Get enumerator and cancel if batch is empty.
-            if (!includeBatch.Any())
-                return false;
-
             // Fetch settings.
             TypeSorting typeSorting = settings.SortByType;
             bool regexIncludeDelimiter = settings.RegexIncludeDelimiter;
@@ -131,15 +113,20 @@ namespace IncludeToolbox.Formatter
             // Select only valid include lines and sort them. They'll stay in this relative sorted
             // order when rearranged by regex precedence groups.
             var includeLines = includeBatch
-                .Where(x => x.ContainsActiveInclude)
-                .OrderBy(x => x.IncludeContent)
-                .ToList();
+                .OrderBy(x => { return x.Content; }).ToArray();
 
             if (settings.RemoveDuplicates)
             {
-                HashSet<string> uniqueIncludes = new HashSet<string>();
-                includeLines.RemoveAll(x => !x.ShouldBePreserved &&
-                                            !uniqueIncludes.Add(x.GetIncludeContentWithDelimiters()));
+                // store kept headers first, to remove all the duplicates
+                HashSet<string> uniqueIncludes = new();
+                uniqueIncludes.UnionWith(includeLines.Where(s => s.Keep).Select(s => s.file));
+
+                for (int i = 0; i < includeLines.Length; i++)
+                {
+                    ref var r = ref includeLines[i];
+                    if (!r.Keep && !uniqueIncludes.Add(r.file))
+                        r.SetFullContent("");
+                }
             }
 
             // Group the includes by the index of the precedence regex they match, or
@@ -147,19 +134,19 @@ namespace IncludeToolbox.Formatter
             var includeGroups = includeLines
                 .GroupBy(x =>
                 {
-                    var includeContent = regexIncludeDelimiter ? x.GetIncludeContentWithDelimiters() : x.IncludeContent;
+                    if (!x.Valid) return precedenceRegexes.Length;
+                    var includeContent = regexIncludeDelimiter ? x.file : x.Content;
                     for (int precedence = 0; precedence < precedenceRegexes.Count(); ++precedence)
                     {
                         if (Regex.Match(includeContent, precedenceRegexes[precedence]).Success)
                             return precedence;
                     }
-
                     return precedenceRegexes.Length;
                 }, x => x)
                 .OrderBy(x => x.Key);
 
             // Optional newlines between regex match groups
-            var groupStarts = new HashSet<IncludeLineInfo>();
+            var groupStarts = new HashSet<IncludeLine>();
             if (blankAfterRegexGroupMatch && precedenceRegexes.Length > 0 && includeLines.Count() > 1)
             {
                 // Set flag to prepend a newline to each group's first include
@@ -172,83 +159,55 @@ namespace IncludeToolbox.Formatter
 
             // Sort by angle or quoted delimiters if either of those options were selected
             if (typeSorting == TypeSorting.AngleBracketsFirst)
-                sortedIncludes = sortedIncludes.OrderBy(x => x.LineDelimiterType == IncludeLineInfo.DelimiterType.AngleBrackets ? 0 : 1);
+                sortedIncludes = sortedIncludes.OrderBy(x => x.delimiter == DelimiterMode.AngleBrackets ? 0 : 1);
             else if (typeSorting == TypeSorting.QuotedFirst)
-                sortedIncludes = sortedIncludes.OrderBy(x => x.LineDelimiterType == IncludeLineInfo.DelimiterType.Quotes ? 0 : 1);
+                sortedIncludes = sortedIncludes.OrderBy(x => x.delimiter == DelimiterMode.Quotes ? 0 : 1);
 
-            // Merge sorted includes with original non-include lines
-            var sortedIncludeEnumerator = sortedIncludes.GetEnumerator();
-            var sortedLines = includeBatch.Select(originalLine =>
-            {
-                if (originalLine.ContainsActiveInclude)
-                {
-                    // Replace original include with sorted includes
-                    return sortedIncludeEnumerator.MoveNext() ? sortedIncludeEnumerator.Current : new IncludeLineInfo();
-                }
-                return originalLine;
-            });
-
-            if (settings.RemoveEmptyLines)
-            {
-                // Removing duplicates may have introduced new empty lines
-                sortedLines = sortedLines.Where(sortedLine => !string.IsNullOrWhiteSpace(sortedLine.RawLine));
-            }
-
-            // Finally, update the actual lines
-            {
-                bool firstLine = true;
-                foreach (var sortedLine in sortedLines)
-                {
-                    // Handle prepending a newline if requested, as long as:
-                    // - this include is the begin of a new group
-                    // - it's not the first line
-                    // - the previous line isn't already a non-include
-                    if (groupStarts.Contains(sortedLine) && !firstLine && outSortedList[outSortedList.Count - 1].ContainsActiveInclude)
-                    {
-                        outSortedList.Add(new IncludeLineInfo());
-                    }
-                    outSortedList.Add(sortedLine);
-                    firstLine = false;
-                }
-            }
-
-            return true;
+            return sortedIncludes.ToArray();
         }
 
-        /// <summary>
-        /// Formats all includes in a given piece of text.
-        /// </summary>
-        /// <param name="text">Text to be parsed for includes.</param>
-        /// <param name="documentName">Path to the document the edit is occuring in.</param>
-        /// <param name="includeDirectories">A list of include directories</param>
-        /// <param name="settings">Settings that determine how the formating should be done.</param>
-        /// <returns>Formated text.</returns>
-        public static string FormatIncludes(string text, string documentPath, IEnumerable<string> includeDirectories, FormatOptions settings)
+
+
+        public static IncludeLine[] FormatIncludes(ReadOnlySpan<char> text, string documentPath, IEnumerable<string> includeDirectories, FormatOptions settings)
         {
             string documentDir = Path.GetDirectoryName(documentPath);
             string documentName = Path.GetFileNameWithoutExtension(documentPath);
 
             includeDirectories = new string[] { Microsoft.VisualStudio.PlatformUI.PathUtil.Normalize(documentDir) + Path.DirectorySeparatorChar }.Concat(includeDirectories);
 
-            string newLineChars = Utils.GetDominantNewLineSeparator(text);
-
-            var lines = IncludeLineInfo.ParseIncludes(text, settings.RemoveEmptyLines ? ParseOptions.RemoveEmptyLines : ParseOptions.None);
+            var lines = Parser.ParseInclues(text, settings.IgnoreIfdefs);
 
             // Format.
             IEnumerable<string> formatingDirs = includeDirectories;
             if (settings.IgnoreFileRelative)
-            {
                 formatingDirs = formatingDirs.Skip(1);
-            }
-            FormatPaths(lines, settings.PathFormat, formatingDirs);
+
+            if (settings.PathFormat != PathMode.Unchanged)
+                FormatPaths(lines, settings.PathFormat, formatingDirs);
+
             FormatDelimiters(lines, settings.DelimiterFormatting);
             FormatSlashes(lines, settings.SlashFormatting);
 
             // Sorting. Ignores non-include lines.
-            lines = SortIncludes(lines, settings, documentName);
+            return SortIncludes(lines, settings, documentName);
+        }
 
-            // Combine again.
-            return string.Join(newLineChars, lines.Select(x => x.RawLine));
+        public static void ApplyChanges(IncludeLine[] includes, ITextEdit edit, string text, int relative_pos, bool remove_empty = true)
+        {
+            var lb = Utils.GetLineBreak(edit);
+            var enumerator = includes
+                .OrderBy(s => s.line)
+                .Zip(includes,
+                (a, b) => { return new KeyValuePair<Span, string>(a.ReplaceSpan(relative_pos), b.Project(text)); });
+
+            string append = "";
+            if (!remove_empty) append = lb;
+
+            foreach (var line in enumerator)
+            {
+                var rep = line.Value + append;
+                edit.Replace(line.Key, rep);
+            }
         }
     }
 }

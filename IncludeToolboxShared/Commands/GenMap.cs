@@ -25,8 +25,10 @@ namespace IncludeToolbox
             var relative_path = settings.Prefix != "" ? Utils.MakeRelative(settings.Prefix, path) : path;
             relative_path = relative_path.Replace('\\', '/');
 
-            string text = doc.TextBuffer.CurrentSnapshot.GetText();
-            var sresult = Formatter.IncludeLineInfo.ParseIncludes(text,
+            var snap = doc.TextBuffer.CurrentSnapshot;
+            var sresult = Formatter.IncludeLineInfo.ParseIncludes( new Microsoft.VisualStudio.Text.SnapshotSpan(
+                snap
+                , 0, snap.Length),
                 Formatter.ParseOptions.KeepOnlyValidIncludes |
                 (settings.Ignoreifdefs ? Formatter.ParseOptions.IgnoreIncludesInPreprocessorConditionals : 0))
                 .Distinct();

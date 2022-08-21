@@ -9,6 +9,15 @@ namespace IncludeToolbox
     public struct string_view
     {
         public int begin, end;
+
+        public string_view(int begin, int end)
+        {
+            this.begin = begin;
+            this.end = end;
+        }
+
+        public int Length => end - begin;
+
         public string str(string str)
         {
             return str.Substring(begin, end - begin);
@@ -522,7 +531,5 @@ namespace IncludeToolbox
         {
             return await Task.Run(() => Parse(text));
         }
-
-
     }
 }

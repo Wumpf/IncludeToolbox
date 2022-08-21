@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Util\MapManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\NamespaceTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Output.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\ParseIncludes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Parser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\RegexUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Standard.cs" />

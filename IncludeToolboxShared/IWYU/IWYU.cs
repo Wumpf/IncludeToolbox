@@ -87,7 +87,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
             var edit = buf.CreateEdit();
             _ = edit.Delete(new(match.Index, match.Length));
 
-            edit.Insert(begin, match.Value + IWYUApply.GetLineBreak(edit));
+            edit.Insert(begin, match.Value + Utils.GetLineBreak(edit));
             edit.Apply();
         }
 
