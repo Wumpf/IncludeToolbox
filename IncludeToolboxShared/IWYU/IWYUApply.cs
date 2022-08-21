@@ -36,14 +36,15 @@ namespace IncludeToolbox
             using var edit = doc.TextBuffer.CreateEdit();
             var text = edit.Snapshot.GetText();
             var span = IWYUApply.GetIncludeSpan(text);
+            var slice = text.Substring(span.Start, span.Length);
 
             var result = Formatter.IncludeFormatter.FormatIncludes(
-                text.AsSpan().Slice(span.Start, span.Length),
+                slice.AsSpan(),
                 doc.FilePath,
                 include_directories, settings
                 );
 
-            Formatter.IncludeFormatter.ApplyChanges(result, edit, text, span.Start);
+            Formatter.IncludeFormatter.ApplyChanges(result, edit, slice, span.Start);
             edit.Apply();
         }
 

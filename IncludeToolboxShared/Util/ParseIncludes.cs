@@ -8,11 +8,6 @@ using static Microsoft.VisualStudio.VSConstants;
 
 namespace IncludeToolbox
 {
-    public struct Addition
-    {
-        public string value;
-        public int pos;
-    }
     public struct IncludeLine
     {
         public string file = "";
