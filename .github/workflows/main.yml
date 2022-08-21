@@ -30,7 +30,7 @@ jobs:
         nuget: 'false'
         sdk: 'false'
         msbuild: 'true'
-
+    
     - name: Increment VSIX version
       id: vsix_version
       uses: timheuer/vsix-version-stamp@v1
