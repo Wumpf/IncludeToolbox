@@ -13,6 +13,6 @@ namespace IncludeToolbox
         public const string Language = "en-US";
         public const string Version = "3.1.0";
         public const string Author = "Agrael";
-        public const string Tags = "Include, IWYU, Include Formatting, Include Sorting, #include";
+        public const string Tags = "Include;IWYU;Include Formatting;Include Sorting;#include;C++;C;Coding";
     }
 }
