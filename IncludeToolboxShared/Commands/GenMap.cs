@@ -24,13 +24,12 @@ namespace IncludeToolbox
             var path = doc.FilePath;
             var relative_path = settings.Prefix != "" ? Utils.MakeRelative(settings.Prefix, path) : path;
             relative_path = relative_path.Replace('\\', '/');
+            
 
             var snap = doc.TextBuffer.CurrentSnapshot;
-            var sresult = Formatter.IncludeLineInfo.ParseIncludes( new Microsoft.VisualStudio.Text.SnapshotSpan(
-                snap
-                , 0, snap.Length),
-                Formatter.ParseOptions.KeepOnlyValidIncludes |
-                (settings.Ignoreifdefs ? Formatter.ParseOptions.IgnoreIncludesInPreprocessorConditionals : 0))
+            var text = snap.GetText();
+
+            var sresult = Parser.ParseInclues(Utils.GetIncludeSpanRO(text), settings.Ignoreifdefs)
                 .Distinct();
 
             string file_map = "";
@@ -50,11 +49,11 @@ namespace IncludeToolbox
                 switch (settings.Preference)
                 {
                     case MappingPreference.Quotes:
-                        file_map += string.Format("\t{{ include: [ \"{0}\", public, \"\\\"{1}\\\"\", public ] }},\n", match.GetIncludeContentWithDelimiters().Replace('\\', '/'), relative_path);
+                        file_map += string.Format("\t{{ include: [ \"{0}\", public, \"\\\"{1}\\\"\", public ] }},\n", match.file.Replace('\\', '/'), relative_path);
                         break;
                     default:
                     case MappingPreference.AngleBrackets:
-                        file_map += string.Format("\t{{ include: [ \"{0}\", public, \"<{1}>\", public ] }},\n", match.GetIncludeContentWithDelimiters().Replace('\\', '/'), relative_path);
+                        file_map += string.Format("\t{{ include: [ \"{0}\", public, \"<{1}>\", public ] }},\n", match.file.Replace('\\', '/'), relative_path);
                         break;
                 }
             settings.Map.Map[relative_path] = file_map;

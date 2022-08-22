@@ -27,6 +27,23 @@ namespace IncludeToolbox
             return snapshot.Lines.ElementAt(0).GetLineBreakText(); //if there is some way to retreive interface of nl counter, I'll use it
         }
 
+        public static Span GetIncludeSpan(string text)
+        {
+            int[] line = new int[2];
+            line[0] = text.IndexOf("#include"); //first
+            line[1] = text.IndexOf("\n", text.LastIndexOf("#include")) - line[0] + 1; //last
+            return new Span(line[0], line[1]);
+        }
+        
+        public static ReadOnlySpan<char> GetIncludeSpanRO(string text)
+        {
+            int[] line = new int[2];
+            line[0] = text.IndexOf("#include"); //first
+            line[1] = text.IndexOf("\n", text.LastIndexOf("#include")) - line[0] + 1; //last
+            return text.AsSpan(line[0], line[1]);
+        }
+
+
         public static string MakeRelative(string absoluteRoot, string absoluteTarget)
         {
             Uri rootUri, targetUri;

@@ -21,21 +21,13 @@ namespace IncludeToolbox
             edit.Apply();
         }
 
-        public static Span GetIncludeSpan(string text)
-        {
-            int[] line = new int[2];
-            line[0] = text.IndexOf("#include"); //first
-            line[1] = text.IndexOf("\n", text.LastIndexOf("#include")) - line[0] + 1; //last
-            return new Span(line[0], line[1]);
-        }
-
         public static async Task FormatAsync(DocumentView doc)
         {
             var include_directories = await VCUtil.GetIncludeDirsAsync();
             var settings = await FormatOptions.GetLiveInstanceAsync();
             using var edit = doc.TextBuffer.CreateEdit();
             var text = edit.Snapshot.GetText();
-            var span = IWYUApply.GetIncludeSpan(text);
+            var span = Utils.GetIncludeSpan(text);
             var slice = text.Substring(span.Start, span.Length);
 
             var result = Formatter.IncludeFormatter.FormatIncludes(
@@ -64,7 +56,7 @@ namespace IncludeToolbox
                         return str;
                     }).ToArray());
             }
-            var span = GetIncludeSpan(edit.Snapshot.GetText());
+            var span = Utils.GetIncludeSpan(edit.Snapshot.GetText());
             edit.Replace(span, result);
         }
 
