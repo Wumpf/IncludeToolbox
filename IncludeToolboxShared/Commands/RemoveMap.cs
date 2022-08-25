@@ -2,7 +2,6 @@
 using Microsoft.VisualStudio.Shell;
 using System.Threading.Tasks;
 using System;
-using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox
 {

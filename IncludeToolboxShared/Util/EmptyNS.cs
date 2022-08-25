@@ -1,8 +1,6 @@
 ﻿using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Remoting.Contexts;
 using static IncludeToolbox.Lexer;
 
 namespace IncludeToolbox
@@ -42,7 +40,7 @@ namespace IncludeToolbox
         }
     }
 
-    internal static partial class Parser
+    public static partial class Parser
     {
         static bool LLTableEN(ref Stack<TType> context, TType input, TType current)
         {
@@ -113,16 +111,16 @@ namespace IncludeToolbox
                 if (expect >= TType.T0) //LL rules
                 {
                     pctx.expected_tokens.Pop();
-                    accept = LLTableEN(ref pctx.expected_tokens, tok.type, expect);
+                    accept = LLTableEN(ref pctx.expected_tokens, tok.Type, expect);
                     continue;
                 }
-                if (!accept && expect != tok.type)
+                if (!accept && expect != tok.Type)
                 {
                     tracker.Empty = false;
                     pctx.Clear(); // unexpected token, start anew
-                    if (tok.type == TType.OpenBr) // if scope, probably function or class
+                    if (tok.Type == TType.OpenBr) // if scope, probably function or class
                         FFWD(ref lctx, (int)pctx.Scope, (int)pctx.Scope + 1);
-                    if (tok.type == TType.CloseBr)
+                    if (tok.Type == TType.CloseBr)
                     {
                         pctx--;
                         tracker.Drop();
@@ -151,9 +149,9 @@ namespace IncludeToolbox
                         break;
                 }
 
-                if (tok.type == TType.OpenBr)
+                if (tok.Type == TType.OpenBr)
                     pctx++;
-                if (tok.type == TType.CloseBr)
+                if (tok.Type == TType.CloseBr)
                     pctx--;
                 tok = lctx.GetToken(accept);
             }

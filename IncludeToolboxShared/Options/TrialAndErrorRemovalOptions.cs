@@ -21,6 +21,11 @@ namespace IncludeToolbox
         [DisplayName("Ignore First Include")]
         [Description("If true, the first include of a file will never be removed (useful for ignoring PCH).")]
         public bool IgnoreFirstInclude { get; set; } = true;
+        
+        [Category("General")]
+        [DisplayName("Ignore Preprocessor Blocks")]
+        [Description("If true, the includes situated in preprocessor #if blocks are ignored.")]
+        public bool IgnoreIfdefs { get; set; } = true;
 
         [Category("General")]
         [DisplayName("Ignore List")]

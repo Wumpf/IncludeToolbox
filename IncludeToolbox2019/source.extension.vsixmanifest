@@ -4,7 +4,6 @@
         <Identity Id="IncludeToolbox2019.1431faa5-aa04-47af-8289-9d887e0696a4" Version="3.1.0" Language="en-US" Publisher="Agrael" />
         <DisplayName>Include Toolbox 2019</DisplayName>
         <Description xml:space="preserve">Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning.</Description>
-        <MoreInfo>https://marketplace.visualstudio.com/items?itemName=Wumpf.IncludeToolbox</MoreInfo>
         <License>License.txt</License>
         <Icon>Resources\IncludeFormatterPackage.png</Icon>
         <PreviewImage>Resources\IncludeFormatterPackage.png</PreviewImage>

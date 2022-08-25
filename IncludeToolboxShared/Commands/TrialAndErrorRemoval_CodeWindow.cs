@@ -1,6 +1,5 @@
 ﻿using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
-using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox.Commands
 {
@@ -17,9 +16,12 @@ namespace IncludeToolbox.Commands
 
         protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
         {
-            var document = VCUtil.GetDTE().ActiveDocument;
-            if (document != null)
-                await impl.PerformTrialAndErrorIncludeRemovalAsync(document);
+            var x = await VS.Solutions.GetActiveItemAsync();
+            if (x.Type != SolutionItemType.PhysicalFile) return;
+            _ = Output.WriteLineAsync($"Starting Trial And Error Include removal on {x.FullPath}");
+            string err = await impl.StartAsync((PhysicalFile)x, await TrialAndErrorRemovalOptions.GetLiveInstanceAsync());
+            if (string.IsNullOrEmpty(err)) return;
+            _ = Output.WriteLineAsync(err);
         }
     }
 }

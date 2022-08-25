@@ -1,10 +1,10 @@
-﻿using System;
+﻿global using Task = System.Threading.Tasks.Task;
+using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox
 {
@@ -17,6 +17,7 @@ namespace IncludeToolbox
     [ProvideOptionPage(typeof(OptionsProvider.TrialAndErrorRemovalOptionsPage), "Include Toolbox", "Trial and Error", 0, 0, true, SupportsProfiles = true)]
     [ProvideOptionPage(typeof(OptionsProvider.MapperOptionsPage), "Include Toolbox", "Mapper", 0, 0, true, SupportsProfiles = true)]
     [ProvideOptionPage(typeof(OptionsProvider.IWYUOptionsPage), "Include Toolbox", "Include-What-You-Use", 0, 0, true, SupportsProfiles = true)]
+    [ProvideOptionPage(typeof(OptionsProvider.ViewerOptionsPage), "Include Toolbox", "Include Viewer", 0, 0, true, SupportsProfiles = true)]
     [ProvideUIContextRule(PackageGuids.GOnlyVCString, "UIOnlyVC",
     expression: "one & two",
     termNames: new[] { "one", "two" },
@@ -27,7 +28,7 @@ namespace IncludeToolbox
     termNames: new[] { "one", "two" },
     termValues: new[] { @"ActiveProjectCapability:VisualC", @"HierSingleSelectionName:.(cpp|c|cxx)$" }
 )]    
-    [ProvideUIContextRule(PackageGuids.GHeaderOnlyString, "UIOnlyCpp",
+    [ProvideUIContextRule(PackageGuids.GHeaderOnlyString, "UIOnlyHead",
     expression: "one & two",
     termNames: new[] { "one", "two" },
     termValues: new[] { @"ActiveProjectCapability:VisualC", @"HierSingleSelectionName:.(h|hpp|hxx|inl)$" }

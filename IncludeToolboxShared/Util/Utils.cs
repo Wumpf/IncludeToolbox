@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 
 namespace IncludeToolbox
 {
@@ -21,6 +18,10 @@ namespace IncludeToolbox
         public static string GetLineBreak(ITextEdit edit)
         {
             return GetLineBreak(edit.Snapshot);
+        }
+        public static string GetLineBreak(IWpfTextView view)
+        {
+            return view.Options.GetNewLineCharacter();
         }
         internal static string GetLineBreak(ITextSnapshot snapshot)
         {

@@ -17,8 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\RunIWYU.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TrialAndErrorRemoval_CodeWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TrialAndErrorRemoval_Project.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatter\IncludeFormatter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatter\IncludeLineInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Implementation\IncludeFormatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IncludeToolboxPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYU.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUApply.cs" />
@@ -37,10 +36,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Util\Parser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\RegexUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Standard.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Util\TrialAndErrorRemoval.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Implementation\TrialAndErrorRemoval.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Utils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Util\VCHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\VCUtil.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Util\VSUtils.cs" />
   </ItemGroup>
 </Project>

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncludeToolbox2022", "Inclu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncludeToolbox2019", "IncludeToolbox2019\IncludeToolbox2019.csproj", "{A81A5332-6A20-4F3B-90B4-E55985B9CF59}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests\Tests.csproj", "{34631D93-26A2-4682-8C7C-B2042CD7D872}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,14 @@ Global
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|x86.ActiveCfg = Release|x86
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|x86.Build.0 = Release|x86
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|x86.Build.0 = Debug|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|x86.ActiveCfg = Release|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

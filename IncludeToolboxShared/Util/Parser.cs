@@ -71,7 +71,7 @@ namespace IncludeToolbox
         public FWDDecl(Token tk)
         {
             span.begin = tk.Position;
-            type = tk.type;
+            type = tk.Type;
         }
         public void SetEnd(int end)
         {
@@ -165,7 +165,7 @@ namespace IncludeToolbox
         }
     }
 
-    internal static partial class Parser
+    public static partial class Parser
     {
         struct Context
         {
@@ -267,9 +267,9 @@ namespace IncludeToolbox
             while (from_scope != to_scope && !ctx.Empty())
             {
                 var tok = ctx.GetToken(false);
-                if (tok.type == TType.OpenBr)
+                if (tok.Type == TType.OpenBr)
                     from_scope++;
-                if (tok.type == TType.CloseBr)
+                if (tok.Type == TType.CloseBr)
                     from_scope--;
             }
         }
@@ -433,15 +433,15 @@ namespace IncludeToolbox
                 if (expect >= TType.T0) //LL rules
                 {
                     pctx.expected_tokens.Pop();
-                    accept = LLTable(ref pctx.expected_tokens, tok.type, expect);
+                    accept = LLTable(ref pctx.expected_tokens, tok.Type, expect);
                     continue;
                 }
-                if (!accept || expect != tok.type)
+                if (!accept || expect != tok.Type)
                 {
                     pctx.Clear(); // unexpected token, start anew
-                    if (tok.type == TType.OpenBr) // if scope, probably function or class
+                    if (tok.Type == TType.OpenBr) // if scope, probably function or class
                         FFWD(ref lctx, (int)pctx.Scope, (int)pctx.Scope + 1);
-                    if (tok.type == TType.CloseBr)
+                    if (tok.Type == TType.CloseBr)
                         pctx--;
                     tok = lctx.GetToken(accept);
                     continue;
@@ -477,9 +477,9 @@ namespace IncludeToolbox
                         break;
                     case TType.ID:
                         if (pctx.Namespace)
-                            pctx.PushNamespace(tok.value.ToString());
+                            pctx.PushNamespace(tok.Value.ToString());
                         else
-                            decl.ID = tok.value.ToString();
+                            decl.ID = tok.Value.ToString();
                         break;
                     case TType.OpenBr:
                         if (pctx.Namespace)
@@ -499,8 +499,8 @@ namespace IncludeToolbox
                         inc = new(tok); break;
                     case TType.QuoteID:
                     case TType.AngleID:
-                        inc.value = tok.value.ToString();
-                        inc.SetEnd(tok.Position + tok.value.Length);
+                        inc.value = tok.Value.ToString();
+                        inc.SetEnd(tok.Position + tok.Value.Length);
                         inc.type = expect;
                         includes.Add(inc);
                         break;
@@ -514,9 +514,9 @@ namespace IncludeToolbox
                         break;
                 }
 
-                if (tok.type == TType.OpenBr)
+                if (tok.Type == TType.OpenBr)
                     pctx++;
-                if (tok.type == TType.CloseBr)
+                if (tok.Type == TType.CloseBr)
                     pctx--;
 
                 tok = lctx.GetToken(accept);

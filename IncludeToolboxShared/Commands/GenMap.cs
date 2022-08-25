@@ -1,7 +1,6 @@
 ﻿using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System.Linq;
-using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox
 {
@@ -49,11 +48,11 @@ namespace IncludeToolbox
                 switch (settings.Preference)
                 {
                     case MappingPreference.Quotes:
-                        file_map += string.Format("\t{{ include: [ \"{0}\", public, \"\\\"{1}\\\"\", public ] }},\n", match.file.Replace('\\', '/'), relative_path);
+                        file_map += string.Format("\t{{ include: [ \"{0}\", public, \"\\\"{1}\\\"\", public ] }},\n", match.FullFile.Replace('\\', '/'), relative_path);
                         break;
                     default:
                     case MappingPreference.AngleBrackets:
-                        file_map += string.Format("\t{{ include: [ \"{0}\", public, \"<{1}>\", public ] }},\n", match.file.Replace('\\', '/'), relative_path);
+                        file_map += string.Format("\t{{ include: [ \"{0}\", public, \"<{1}>\", public ] }},\n", match.FullFile.Replace('\\', '/'), relative_path);
                         break;
                 }
             settings.Map.Map[relative_path] = file_map;

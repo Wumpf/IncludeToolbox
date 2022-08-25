@@ -119,12 +119,12 @@ namespace IncludeToolbox.Formatter
             {
                 // store kept headers first, to remove all the duplicates
                 HashSet<string> uniqueIncludes = new();
-                uniqueIncludes.UnionWith(includeLines.Where(s => s.Keep).Select(s => s.file));
+                uniqueIncludes.UnionWith(includeLines.Where(s => s.Keep).Select(s => s.FullFile));
 
                 for (int i = 0; i < includeLines.Length; i++)
                 {
                     ref var r = ref includeLines[i];
-                    if (!r.Keep && !uniqueIncludes.Add(r.file))
+                    if (!r.Keep && !uniqueIncludes.Add(r.FullFile))
                         r.SetFullContent("");
                 }
             }
@@ -135,7 +135,7 @@ namespace IncludeToolbox.Formatter
                 .GroupBy(x =>
                 {
                     if (!x.Valid) return precedenceRegexes.Length;
-                    var includeContent = regexIncludeDelimiter ? x.file : x.Content;
+                    var includeContent = regexIncludeDelimiter ? x.FullFile : x.Content;
                     for (int precedence = 0; precedence < precedenceRegexes.Count(); ++precedence)
                     {
                         if (Regex.Match(includeContent, precedenceRegexes[precedence]).Success)

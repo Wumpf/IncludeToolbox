@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,46 +9,57 @@ using static Microsoft.VisualStudio.VSConstants;
 
 namespace IncludeToolbox
 {
+    public enum NewlineChar
+    {
+        N,
+        CR,
+        LF,
+        CRLF
+    }
+
     public struct IncludeLine
     {
-        public string file = "";
+        private string file = "";
         public DelimiterMode delimiter = DelimiterMode.Unchanged;
-        public string_view span;
-        public string_view file_subspan = new();
+        public Span span = new();
+        public Span file_subspan = new();
         public int line = 0;
         public bool keep = false;
+        public NewlineChar newlineChar = NewlineChar.N;
 
-        public IncludeLine(string file, DelimiterMode delimiter, string_view span, int line)
-        {
-            this.file = file;
-            this.delimiter = delimiter;
-            this.span = span;
-            this.line = line;
-        }
+        public IncludeLine()
+        {}
 
         public string Content => Valid ? file.Substring(1, file.Length - 2) : "";
-        public string FullLine => "#include " + file;
+        public string FullFile { get => file; set => file = value; }
         public bool Keep => keep;
         public bool Valid => !string.IsNullOrEmpty(file);
-        public Span ReplaceSpan(int relative_pos) => new(relative_pos + span.begin, span.end - span.begin);
+        public int NewlineLength => newlineChar switch { NewlineChar.N => 0, NewlineChar.CR => 2, _ => 1 };
+
+
+        public Span ReplaceSpan(int relative_pos) => new(relative_pos + span.Start, span.Length);
+        public Span ReplaceSpan(int relative_pos, int offset_end) =>
+            offset_end >= span.Length ? new() : new(relative_pos + span.Start, span.Length - offset_end);
+        public Span ReplaceSpanWithoutNewline(int relative_pos) =>
+            ReplaceSpan(relative_pos, NewlineLength);
 
         public string Project(string over)
         {
             if (!Valid) return "";
-            var x = span.str(over);
-            return x.Remove(file_subspan.begin, file_subspan.Length).Insert(file_subspan.begin, file);
+            var x = over.Substring(span.Start, span.Length);
+            return x.Remove(file_subspan.Start, file_subspan.Length).Insert(file_subspan.Start, FullFile);
         }
-        public void SetFullContent(string content) { file = content; }
+        public void SetFullContent(string content) { FullFile = content; }
 
         public void SetFile(string val)
         {
             switch (delimiter)
             {
                 case DelimiterMode.AngleBrackets:
-                    file = '<' + val + '>';
+                    FullFile = '<' + val + '>';
                     break;
                 case DelimiterMode.Quotes:
-                    file = '"' + val + '"';
+                    FullFile = '"' + val + '"';
                     break;
             }
         }
@@ -59,11 +71,11 @@ namespace IncludeToolbox
         }
         public void ToForward()
         {
-            file.Replace('\\', '/');
+            FullFile.Replace('\\', '/');
         }
         public void ToBackward()
         {
-            file.Replace('/', '\\');
+            FullFile.Replace('/', '\\');
         }
 
         public string Resolve(IEnumerable<string> includeDirectories)
@@ -71,7 +83,7 @@ namespace IncludeToolbox
             foreach (string dir in includeDirectories)
             {
                 string candidate = Path.Combine(dir, Content);
-                if (File.Exists(candidate))
+                if (System.IO.File.Exists(candidate))
                     return Utils.GetExactPathName(candidate);
             }
 
@@ -79,12 +91,13 @@ namespace IncludeToolbox
             return "";
         }
     }
-    internal static partial class Parser
+    public static partial class Parser
     {
         static readonly Regex pragma = new("(?:\\/\\*|\\/\\/)(?:\\s*IWYU\\s+pragma:\\s+keep)");// IWYU pragma: keep 
 
 
-        public static IncludeLine[] ParseInclues(ReadOnlySpan<char> text, bool ignore_ifdefs)
+
+        public static IncludeLine[] ParseInclues(ReadOnlySpan<char> text, bool ignore_ifdefs = true)
         {
             List<IncludeLine> lines = new();
             Lexer.Context lctx = new(text);
@@ -94,38 +107,49 @@ namespace IncludeToolbox
             bool skip = false;
             bool accept = true;
             bool comments = false;
+
             int line = 0;
+            int start_pos = 0;
+            int end_pos = 0;
 
 
             while (!lctx.Empty())
             {
                 Token tok = lctx.GetToken(accept, ignore_ifdefs, true, comments);
-                switch (tok.type)
+                switch (tok.Type)
                 {
                     case TType.Newline:
                         comments = accept = false;
                         line++;
                         if (xline.Valid)
                         {
-                            xline.span.end = tok.Position;
+                            xline.newlineChar = tok.Value.ToString() switch
+                            {
+                                "\n" => NewlineChar.LF,
+                                "\r" => NewlineChar.CR,
+                                "\r\n" => NewlineChar.CRLF,
+                                _ => NewlineChar.N
+                            };
+                            end_pos = tok.End;
+                            xline.span = new(start_pos, end_pos - start_pos);
                             lines.Add(xline);
                             xline = new IncludeLine();
                         }
                         break;
                     case TType.Include:
                         accept = !skip;
-                        xline.span.begin = tok.Position;
+                        start_pos = tok.Position;
                         break;
                     case TType.AngleID:
                     case TType.QuoteID:
                         if (!skip && accept)
                         {
-                            var begin = tok.Position - xline.span.begin;
-                            xline.file = tok.value.ToString();
-                            xline.delimiter = tok.type == TType.AngleID ? DelimiterMode.AngleBrackets : DelimiterMode.Quotes;
-                            xline.span.end = tok.Position + tok.value.Length;
+                            var begin = tok.Position - start_pos;
+                            xline.FullFile = tok.Value.ToString();
+                            xline.delimiter = tok.Type == TType.AngleID ? DelimiterMode.AngleBrackets : DelimiterMode.Quotes;
+                            end_pos = tok.End;
                             xline.line = line;
-                            xline.file_subspan = new(begin, begin + tok.value.Length); // subspan of file for replacement
+                            xline.file_subspan = new(begin, tok.Value.Length); // subspan of file for replacement
 
                             accept = false;
                             comments = true;
@@ -142,11 +166,9 @@ namespace IncludeToolbox
                         skip = false;
                         break;
                     case TType.Commentary:
-                        line++;
-                        goto case TType.MLCommentary;
                     case TType.MLCommentary:
-                        xline.span.end = tok.Position + tok.value.Length;
-                        xline.keep = pragma.IsMatch(tok.value.ToString());
+                        end_pos = tok.End;
+                        xline.keep = pragma.IsMatch(tok.Value.ToString());
                         break;
                     default:
                         accept = false;
@@ -155,7 +177,10 @@ namespace IncludeToolbox
             }
 
             if (xline.Valid)
+            {
+                xline.span = new(start_pos, end_pos - start_pos);
                 lines.Add(xline);
+            }
 
             return lines.ToArray();
         }

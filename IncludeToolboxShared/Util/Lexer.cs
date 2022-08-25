@@ -57,11 +57,14 @@ namespace IncludeToolbox
         }
         public ref struct Token
         {
-            public TType type;
-            public ReadOnlySpan<char> value;
-            readonly int pos = 0;
+            private readonly TType type;
+            private readonly ReadOnlySpan<char> value;
+            private readonly int pos = 0;
 
             public int Position { get { return pos; } }
+            public int End { get { return pos + Value.Length; } }
+            public ReadOnlySpan<char> Value => value;
+            public TType Type => type;
 
             public Token(TType type, int pos, ReadOnlySpan<char> value)
             {
@@ -77,15 +80,15 @@ namespace IncludeToolbox
             }
             public bool valid()
             {
-                return type != TType.Null;
+                return Type != TType.Null;
             }
         }
 
         public ref struct Context
         {
-            ReadOnlySpan<char> original;
-            ReadOnlySpan<char> code;
-            int current_pos = 0;
+            private readonly ReadOnlySpan<char> original;
+            private ReadOnlySpan<char> code;
+            private int current_pos = 0;
 
             public int Position { get => current_pos; }
 
@@ -114,24 +117,24 @@ namespace IncludeToolbox
             }
             internal void SkipComment()
             {
-                int rem = code.IndexOf('\n');
-                if(rem == -1)
+                int rem = code.IndexOfAny('\r', '\n');
+                if (rem == -1)
                 {
                     code = "".AsSpan();
                     return;
                 }
-                RemovePrefix(rem + 1);
+                RemovePrefix(rem);
             }
             internal Token TakeComment()
             {
-                int rem = code.IndexOf('\n');
-                if(rem == -1)
+                int rem = code.IndexOfAny('\r', '\n');
+                if (rem == -1)
                 {
                     code = "".AsSpan();
                     return new(TType.Commentary, current_pos - 1, original.Slice(current_pos - 1));
                 }
-                Token tk = new(TType.Commentary, current_pos - 1, original.Slice(current_pos - 1, rem + 1));
-                RemovePrefix(rem + 1);
+                Token tk = MakeValueToken(TType.Commentary, rem + 1);
+                RemovePrefix(rem);
                 return tk;
             }
 
@@ -163,7 +166,7 @@ namespace IncludeToolbox
                     if (Prefetch() == '/')
                     {
                         RemovePrefix(1);
-                        return new Token(TType.MLCommentary,start, original.Slice(start, current_pos - start));
+                        return MakeValueToken(TType.MLCommentary, start, current_pos - start);
                     }
                 }
             }
@@ -233,6 +236,15 @@ namespace IncludeToolbox
                 RemovePrefix(i);
             }
 
+            private Token MakeValueToken(TType type, int pos, int length)
+            {
+                return new(type, pos, original.Slice(pos, length));
+            }
+            private Token MakeValueToken(TType type, int length)
+            {
+                return MakeValueToken(type, current_pos - 1, length);
+            }
+
             private Token GetToken(bool expect_id, Desc desc = default)
             {
                 Token tk = new();
@@ -240,8 +252,21 @@ namespace IncludeToolbox
                 {
                     char c = Fetch();
 
-                    if (desc.newlines && c == '\n')
-                        return new Token(TType.Newline, Position);
+                    if (desc.newlines)
+                    {
+                        switch (c)
+                        {
+                            case '\n': return MakeValueToken(TType.Newline, 1);
+                            case '\r':
+                                if (Prefetch() == '\n')
+                                {
+                                    tk = MakeValueToken(TType.Newline, 2);
+                                    Fetch();
+                                    return tk;
+                                }
+                                return MakeValueToken(TType.Newline, 1);
+                        }
+                    }
 
                     switch (c)
                     {

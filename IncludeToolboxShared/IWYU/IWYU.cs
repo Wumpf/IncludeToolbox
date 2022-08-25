@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox.IncludeWhatYouUse
 {
@@ -46,8 +45,10 @@ namespace IncludeToolbox.IncludeWhatYouUse
         {
             process.StartInfo.FileName = settings.Executable;
 
-            List<string> args = new();
-            args.Add(string.Format("--verbose={0}", settings.Verbosity));
+            List<string> args = new()
+            {
+                string.Format("--verbose={0}", settings.Verbosity)
+            };
 
             if (settings.Precompiled || settings.IgnoreHeader)
                 args.Add("--pch_in_code");
@@ -76,18 +77,15 @@ namespace IncludeToolbox.IncludeWhatYouUse
         {
             var buf = view.TextBuffer;
             var str = buf.CurrentSnapshot.GetText();
-            int begin = str.IndexOf("#include ");
-            int end = str.LastIndexOf("#include ");
-            end = str.IndexOf('\n', end);
-
+            var span = Utils.GetIncludeSpan(str);
 
             Regex regex = new($"#include\\s[<\"]([\\w\\\\\\/\\.]+{Path.GetFileNameWithoutExtension(view.FilePath)}.h(?:pp|xx)?)[>\"]");
-            var match = regex.Match(str, begin, end - begin);
+            var match = regex.Match(str, span.Start, span.Length);
             if (!match.Success) return;
             var edit = buf.CreateEdit();
             _ = edit.Delete(new(match.Index, match.Length));
 
-            edit.Insert(begin, match.Value + Utils.GetLineBreak(edit));
+            edit.Insert(span.Start, match.Value + Utils.GetLineBreak(view.TextView));
             edit.Apply();
         }
 
