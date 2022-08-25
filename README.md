@@ -12,8 +12,13 @@ Include Toolbox consists of 4 different tools. All of them are only applicable t
 ![](/art/igraph.png)**[Tool Window]** ~~Include Graph~~
 
 ## Links
-[Open VSIX Gallery](https://www.vsixgallery.com/extension/IncludeToolbox2019.1431faa5-aa04-47af-8289-9d887e0696a4)
+
+[Open VSIX Gallery 2019](https://www.vsixgallery.com/extension/IncludeToolbox2019.1431faa5-aa04-47af-8289-9d887e0696a4)
+
+[Open VSIX Gallery 2022](https://www.vsixgallery.com/extension/IncludeToolbox2022.d3cba4fe-8d65-479b-8436-18d743ee7b53)
+
 Marketplace(tbd)
+
 [Version History](/doc/changelog.md)
 
 # Tools in Detail

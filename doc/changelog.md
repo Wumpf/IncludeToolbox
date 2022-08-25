@@ -4,7 +4,7 @@
    * DTE support removed
    * Cleaned up utils
    * Added tests for Lex and Parser and test steps in building pipeline
-   \*BREAKING CHANGES\** Unified pragmas with IWYU
+   * \*BREAKING CHANGES\* Unified pragmas with IWYU
 * 3.1.22 
    * New Include Format parsing, performed using project Lexer
    * Small fixes and DTE reduction
