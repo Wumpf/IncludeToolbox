@@ -11,7 +11,7 @@ namespace IncludeToolbox
         public const string Name = "Include Toolbox 2019";
         public const string Description = @"Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning.";
         public const string Language = "en-US";
-        public const string Version = "3.1.0";
+        public const string Version = "3.2.0";
         public const string Author = "Agrael";
         public const string Tags = "Include;IWYU;Include Formatting;Include Sorting;#include;C++;C;Coding";
     }
