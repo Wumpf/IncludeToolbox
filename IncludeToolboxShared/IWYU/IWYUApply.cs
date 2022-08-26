@@ -112,7 +112,7 @@ namespace IncludeToolbox
 
             foreach (var item in add_i)
             {
-                edit.Insert(parsed.LastInclude, item.Project(output) + lb);
+                edit.Insert(parsed.LastInclude, lb + item.Project(output));
             }
 
             DeclNode tree = new(Lexer.TType.Namespace)
@@ -129,7 +129,7 @@ namespace IncludeToolbox
 
             tree.AddChildren(add_f);
             string result = tree.ToString(std >= Standard.cpp17);
-            edit.Insert(parsed.LastInclude, result + lb);
+            edit.Insert(parsed.LastInclude, lb + result);
 
 
             if (!settings.MoveDecls)
