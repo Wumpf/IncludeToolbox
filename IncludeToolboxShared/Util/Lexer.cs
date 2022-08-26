@@ -201,10 +201,11 @@ namespace IncludeToolbox
             internal Token TryAssociateWith(ReadOnlySpan<char> tk, TType type)
             {
                 int pos = FindDelim();
-                var sl = code.Slice(0, pos + 1);
+                var sl = code.Slice(0, pos);
+                bool a = sl.SequenceEqual(tk);
 
-                Token t = sl.StartsWith(tk) && IsDelim(sl[tk.Length]) ? (new(type, current_pos - 1)) : (new());
-                if (!t.valid()) return t;
+                if (!a) return new();
+                Token t = new(type, current_pos - 1);
                 RemovePrefix(pos);
                 return t;
             }
@@ -332,7 +333,7 @@ namespace IncludeToolbox
                             }
                             break;
                         case ';':
-                            tk = new Token(TType.Semicolon, Position);
+                            tk = MakeValueToken(TType.Semicolon, 1);
                             break;
                         case '<':
                         case '"':
@@ -340,10 +341,10 @@ namespace IncludeToolbox
                                 tk = GetHeader(c);
                             break;
                         case '{':
-                            tk = new Token(TType.OpenBr, Position);
+                            tk = MakeValueToken(TType.OpenBr, 1);
                             break;
                         case '}':
-                            tk = new Token(TType.CloseBr, Position);
+                            tk = MakeValueToken(TType.CloseBr, 1);
                             break;
                         default:
                             break;

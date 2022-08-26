@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Util\Output.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\ParseIncludes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Parser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\ParserStructures.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\RegexUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Standard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\TrialAndErrorRemoval.cs" />

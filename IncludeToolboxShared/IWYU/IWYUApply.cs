@@ -64,108 +64,90 @@ namespace IncludeToolbox
         {
             if (output == "") return;
 
-            while (true)
-            {
-                int pos = output.IndexOf(match);
-                if (pos == -1) return;
+            int pos = output.IndexOf(match);
+            if (pos == -1) return;
 
-                pos += match.Length;
-                string part = output.Substring(pos);
+            pos += match.Length;
+            string part = output.Substring(pos);
 
-                int endp = part.IndexOf("---");
-                string path = part.Substring(0, part.IndexOf(':', 3));
-                var doc = await VS.Documents.OpenAsync(path);
-                using var edit = doc.TextBuffer.CreateEdit();
+            int endp = part.IndexOf("---");
+            string path = part.Substring(0, part.IndexOf(':', 3));
+            var doc = await VS.Documents.OpenAsync(path);
+            using var edit = doc.TextBuffer.CreateEdit();
 
-                int endl = part.IndexOf("\n");
-                string result = part.Substring(endl, endp - endl);
-                ApplyCheap(edit,
-                    result,
-                    settings.Comms != Comment.No);
+            int endl = part.IndexOf("\n");
+            string result = part.Substring(endl, endp - endl);
+            ApplyCheap(edit,
+                result,
+                settings.Comms != Comment.No);
 
-                edit.Apply();
-                output = part.Substring(endp);
-            }
+            edit.Apply();
         }
 
         public static async Task ApplyPreciseAsync(IWYUOptions settings, Parser.Output parsed, string output, Standard std)
         {
             if (output == "") return;
 
-            while (true)
+            int pos = output.IndexOf(match);
+            if (pos == -1) return;
+
+            var retasks = Parser.Parse(output.AsSpan().Slice(0, pos), true, true);
+            int sep_index = output.IndexOf(" should remove these lines:"); //find middle ground
+
+            pos += match.Length;
+            string part = output.Substring(pos);
+
+            string path = part.Substring(0, part.IndexOf(':', 3));
+            var doc = await VS.Documents.OpenAsync(path);
+            using var edit = doc.TextBuffer.CreateEdit();
+            var lb = Utils.GetLineBreak(doc.TextView);
+
+
+            var add_f = retasks.Declarations.Where(s => s.span.Start < sep_index);
+            var rem_f = retasks.Declarations.Where(s => s.span.Start > sep_index);
+
+            var add_i = retasks.Includes.Where(s => s.span.Start < sep_index);
+            var rem_i = retasks.Includes.Where(s => s.span.Start > sep_index);
+
+
+            foreach (var item in add_i)
             {
-                int pos = output.IndexOf(match);
-                if (pos == -1) return;
-
-                var retasks = Parser.Parse(output.AsSpan().Slice(0, pos), true, true);
-                int sep_index = output.IndexOf(" should remove these lines:"); //find middle ground
-
-
-                pos += match.Length;
-                string part = output.Substring(pos);
-
-
-                int endp = part.IndexOf("---");
-                string path = part.Substring(0, part.IndexOf(':', 3));
-                var doc = await VS.Documents.OpenAsync(path);
-                using var edit = doc.TextBuffer.CreateEdit();
-                var lb = Utils.GetLineBreak(edit);
-
-
-                var add_f = retasks.Declarations.Where(s => s.span.begin < sep_index);
-                var rem_f = retasks.Declarations.Where(s => s.span.begin > sep_index);
-
-                var add_i = retasks.Includes.Where(s => s.span.begin < sep_index);
-                var rem_i = retasks.Includes.Where(s => s.span.begin > sep_index);
-
-
-                foreach (var item in add_i)
-                {
-                    edit.Insert(parsed.LastInclude, lb + item.span.str(output));
-                }
-
-                DeclNode tree = new(Lexer.TType.Namespace)
-                {
-                    LineBreak = lb
-                };
-
-                if (settings.MoveDecls)
-                {
-                    tree.AddChildren(parsed.Declarations.Where(s => !rem_f.Contains(s)));
-                    foreach (var task in parsed.Declarations)
-                        edit.Delete(task.AsSpan());
-                }
-
-                tree.AddChildren(add_f);
-                string result = tree.ToString(std >= Standard.cpp17);
-                edit.Insert(parsed.LastInclude, lb + result);
-
-
-
-                if (!settings.MoveDecls)
-                    foreach (var task in rem_f)
-                    {
-                        var found = parsed.Declarations.FindLast(s => s == task);
-
-                        if (!found.Valid()) continue;
-                        edit.Delete(found.AsSpan());
-                        parsed.Declarations.Remove(found);
-
-                    }
-
-                foreach (var task in rem_i)
-                {
-                    var found = parsed.Includes.FindLast(s => s == task);
-
-                    if (!found.Valid()) continue;
-                    edit.Delete(found.AsSpan());
-                    parsed.Includes.Remove(found);
-                }
-
-
-                edit.Apply(); 
-                output = part.Substring(endp);
+                edit.Insert(parsed.LastInclude, item.Project(output) + lb);
             }
+
+            DeclNode tree = new(Lexer.TType.Namespace)
+            {
+                LineBreak = lb
+            };
+
+            if (settings.MoveDecls)
+            {
+                tree.AddChildren(parsed.Declarations.Where(s => !rem_f.Contains(s)));
+                foreach (var task in parsed.Declarations)
+                    edit.Delete(task.span);
+            }
+
+            tree.AddChildren(add_f);
+            string result = tree.ToString(std >= Standard.cpp17);
+            edit.Insert(parsed.LastInclude, result + lb);
+
+
+            if (!settings.MoveDecls)
+                foreach (var task in rem_f)
+                {
+                    var found = parsed.Declarations.FindLast(s => s == task);
+                    edit.Delete(found.span);
+                    parsed.Declarations.Remove(found);
+                }
+
+            foreach (var task in rem_i)
+            {
+                var found = parsed.Includes.FindLast(s => s == task);
+                edit.Delete(found.span);
+                parsed.Includes.Remove(found);
+            }
+
+            edit.Apply();
         }
     }
 }
