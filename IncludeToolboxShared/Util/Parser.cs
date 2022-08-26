@@ -6,165 +6,6 @@ using static IncludeToolbox.Lexer;
 
 namespace IncludeToolbox
 {
-    public struct string_view
-    {
-        public int begin, end;
-
-        public string_view(int begin, int end)
-        {
-            this.begin = begin;
-            this.end = end;
-        }
-
-        public int Length => end - begin;
-
-        public string str(string str)
-        {
-            return str.Substring(begin, end - begin);
-        }
-        public Microsoft.VisualStudio.Text.Span AsSpan()
-        {
-            return new Microsoft.VisualStudio.Text.Span(begin, end - begin - 1);
-        }
-    }
-
-    public struct Namespace
-    {
-        public string_view head = new();
-        public string[] namespaces = null;
-        uint scope = 0;
-
-        public uint Scope { get { return scope; } }
-
-        public Namespace(Token tk, uint scope)
-        {
-            head.begin = tk.Position;
-            this.scope = scope;
-        }
-        public Namespace(string[] namespaces)
-        {
-            this.namespaces = namespaces;
-        }
-        public void SetEnd(int end)
-        {
-            head.end = end + 1;
-        }
-        public int GetEnd()
-        {
-            return head.end;
-        }
-        public bool Valid()
-        {
-            return namespaces != null;
-        }
-    }
-
-    public struct FWDDecl
-    {
-        public string_view span = new();
-        public string[] namespaces = null;
-        public TType type = TType.Null;
-        public bool finished = false;
-        public string ID = "";
-
-
-        public FWDDecl(Token tk)
-        {
-            span.begin = tk.Position;
-            type = tk.Type;
-        }
-        public void SetEnd(int end)
-        {
-            span.end = end + 1;
-            finished = true;
-        }
-        public bool Valid()
-        {
-            return finished;
-        }
-        public Microsoft.VisualStudio.Text.Span AsSpan()
-        {
-            return span.AsSpan();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is FWDDecl decl &&
-                   namespaces.SequenceEqual(decl.namespaces) &&
-                   type == decl.type &&
-                   ID == decl.ID;
-        }
-
-        public override int GetHashCode()
-        {
-            int hashCode = -1447791890;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string[]>.Default.GetHashCode(namespaces);
-            hashCode = hashCode * -1521134295 + type.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(ID);
-            return hashCode;
-        }
-
-        static public bool operator ==(FWDDecl decl1, FWDDecl decl2)
-        {
-            bool a = decl2.namespaces.SequenceEqual(decl1.namespaces);
-            return decl1.ID == decl2.ID && decl1.type == decl2.type && a;
-        }
-        static public bool operator !=(FWDDecl decl1, FWDDecl decl2)
-        {
-            return !(decl1 == decl2);
-        }
-    }
-
-    public struct Include
-    {
-        public string_view span = new();
-        public TType type = TType.Null;
-        public string value = "";
-        public bool finished = false;
-
-        public Include(Token tk)
-        {
-            span.begin = tk.Position;
-        }
-        public void SetEnd(int end)
-        {
-            span.end = end + 1;
-            finished = true;
-        }
-        public bool Valid()
-        {
-            return finished;
-        }
-        public Microsoft.VisualStudio.Text.Span AsSpan()
-        {
-            return span.AsSpan();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Include decl &&
-                   type == decl.type &&
-                   value == decl.value;
-        }
-
-        public override int GetHashCode()
-        {
-            int hashCode = 1148455455;
-            hashCode = hashCode * -1521134295 + type.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(value);
-            return hashCode;
-        }
-
-        static public bool operator ==(Include decl1, Include decl2)
-        {
-            return decl1.type == decl2.type && decl1.value == decl2.value;
-        }
-        static public bool operator !=(Include decl1, Include decl2)
-        {
-            return !(decl1 == decl2);
-        }
-    }
-
     public static partial class Parser
     {
         struct Context
@@ -236,15 +77,15 @@ namespace IncludeToolbox
         {
             private readonly List<Namespace> namespaces;
             private readonly List<FWDDecl> decls;
-            private readonly List<Include> includes;
+            private readonly List<IncludeLine> includes;
             private readonly int last_include = -1;
 
             public List<Namespace> Namespaces { get => namespaces; }
             public List<FWDDecl> Declarations { get => decls; }
-            public List<Include> Includes { get => includes; }
+            public List<IncludeLine> Includes { get => includes; }
             public int LastInclude { get => last_include; }
 
-            public Output(List<Namespace> namespaces, List<FWDDecl> decls, List<Include> includes, int last_include)
+            public Output(List<Namespace> namespaces, List<FWDDecl> decls, List<IncludeLine> includes, int last_include)
             {
                 this.namespaces = namespaces;
                 this.decls = decls;
@@ -257,7 +98,7 @@ namespace IncludeToolbox
                         this.last_include = 0;
                         return;
                     }
-                    this.last_include = includes.Last().span.end; //empty file and include
+                    this.last_include = includes.Last().span.End; //empty file and include
                 }
             }
         }
@@ -413,15 +254,19 @@ namespace IncludeToolbox
         {
             List<Namespace> namespaces = new();
             List<FWDDecl> fwd = new();
-            List<Include> includes = new();
+            List<IncludeLine> includes = new();
+
             Namespace ns = new();
             FWDDecl decl = new();
-            Include inc = new();
+            IncludeLine inc = new();
 
             Lexer.Context lctx = new(text);
             Parser.Context pctx = new();
             bool accept = false;
             bool include_end = false;
+
+            int start = 0;
+
             Token tok = lctx.GetToken(accept);
             int last_include = -1; //eof
 
@@ -444,6 +289,7 @@ namespace IncludeToolbox
                     if (tok.Type == TType.CloseBr)
                         pctx--;
                     tok = lctx.GetToken(accept);
+                    decl.type = TType.Null; //interference with enum{} class;
                     continue;
                 }
 
@@ -456,7 +302,7 @@ namespace IncludeToolbox
                     && includes.Count > 0)
                 {
                     include_end = true; 
-                    last_include = includes.Last().span.end;
+                    last_include = includes.Last().span.End;
                 }
 
                 switch (expect)
@@ -464,16 +310,20 @@ namespace IncludeToolbox
                     case TType.Namespace:
                         pctx.Namespace = true;
                         if (!disable_ns)
-                            ns = new(tok, pctx.Scope);
+                        {
+                            start = tok.Position;
+                            ns.scope = pctx.Scope;
+                        }
                         break;
                     case TType.Class:
-                        if (!decl.finished && decl.type == TType.Enum)
+                        if (decl.type == TType.Enum)
                             decl.type = TType.EnumClass; //special case
                         else goto case TType.Struct;
                         break;
                     case TType.Struct:
                     case TType.Enum:
-                        decl = new(tok);
+                        decl.type = tok.Type;
+                        start = tok.Position;
                         break;
                     case TType.ID:
                         if (pctx.Namespace)
@@ -487,8 +337,9 @@ namespace IncludeToolbox
                             if (!disable_ns)
                             {
                                 ns.namespaces = pctx.GetNamespace();
-                                ns.SetEnd(tok.Position);
+                                ns.span = new(start, tok.Position - start);
                                 namespaces.Add(ns);
+                                ns = new();
                             }
                             pctx.Namespace = false;
                         }
@@ -496,19 +347,24 @@ namespace IncludeToolbox
                     case TType.CloseBr:
                         pctx.PopNamespace(); break;
                     case TType.Include:
-                        inc = new(tok); break;
+                        start = tok.Position;
+                        break;
                     case TType.QuoteID:
                     case TType.AngleID:
-                        inc.value = tok.Value.ToString();
-                        inc.SetEnd(tok.Position + tok.Value.Length);
-                        inc.type = expect;
+                        var begin = tok.Position - start;
+                        inc.FullFile = tok.Value.ToString();
+                        inc.delimiter = tok.Type == TType.AngleID ? DelimiterMode.AngleBrackets : DelimiterMode.Quotes;
+                        
+                        inc.span = new(start, tok.End - start);
+                        inc.file_subspan = new(begin, tok.Value.Length); // subspan of file for replacement
                         includes.Add(inc);
+                        inc = new();
                         break;
                     case TType.Semicolon:
-                        decl.SetEnd(tok.Position);
-                        decl.finished = true;
+                        decl.span = new(start, tok.End - start);
                         decl.namespaces = pctx.ns_tree.ToArray();
                         fwd.Add(decl);
+                        decl = new();
                         break;
                     default:
                         break;

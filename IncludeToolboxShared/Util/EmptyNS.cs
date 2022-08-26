@@ -7,12 +7,9 @@ namespace IncludeToolbox
 {
     internal struct NSTracker
     {
-        Stack<KeyValuePair<string_view, bool>> nsscan = new();
-        string_view ns = new();
-        bool empty = true;
-
-        public int Start { get => ns.begin; set => ns.begin = value; }
-        public bool Empty { get => empty; set => empty = value; }
+        Stack<KeyValuePair<int, bool>> nsscan = new();
+        public int Start { get; set ; }
+        public bool Empty { get; set; }
 
         public NSTracker()
         {
@@ -20,23 +17,20 @@ namespace IncludeToolbox
 
         public void Push()
         {
-            nsscan.Push(new(ns, empty));
-            empty = true;
+            nsscan.Push(new(Start, Empty));
+            Empty = true;
         }
         public Span Pop(int end)
         {
             var v = nsscan.Pop();
-            empty = v.Value && empty;
-            var s = ns;
-            s.end = end + 1;
-            ns = v.Key;
-            return s.AsSpan();
+            Empty = v.Value && Empty;
+            return new(v.Key, end - v.Key);
         }
         public void Drop()
         {
             if (nsscan.Count > 0)
                 nsscan.Pop();
-            empty = false;
+            Empty = false;
         }
     }
 
@@ -140,7 +134,7 @@ namespace IncludeToolbox
                     case TType.CloseBr:
                         if (tracker.Empty)
                         {
-                            var c = tracker.Pop(tok.Position);
+                            var c = tracker.Pop(tok.End);
                             namespaces.RemoveAll(x => c.Contains(x));
                             namespaces.Add(c);
                         }
