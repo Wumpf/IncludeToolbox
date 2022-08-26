@@ -9,8 +9,6 @@
   <Symbols>
     <GuidSymbol name="MonikersGuid" value="{41e64718-3ed1-4ace-aeb4-fbe550d81000}">
       <IDSymbol name="hash" value="12" />
-      <IDSymbol name="include13" value="1" />
-      <IDSymbol name="include16" value="2" />
       <IDSymbol name="IncludeFormatterIcons_0" value="3" />
       <IDSymbol name="IncludeFormatterIcons_1" value="4" />
       <IDSymbol name="IncludeFormatterIcons_2" value="5" />

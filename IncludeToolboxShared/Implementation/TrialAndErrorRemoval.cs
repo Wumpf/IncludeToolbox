@@ -59,7 +59,45 @@ namespace IncludeToolbox
             GC.SuppressFinalize(this);
         }
     }
+    internal sealed class DialogGuard : IDisposable
+    {
+        private bool disposedValue;
+        public IVsThreadedWaitDialog4 Dialog { get; private set; }
 
+        public DialogGuard(IVsThreadedWaitDialog4 dialog)
+        {
+            this.Dialog = dialog;
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects)
+                }
+                Dialog.EndWaitDialog();
+                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
+                // TODO: set large fields to null
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        ~DialogGuard()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: false);
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+    }
     internal sealed class TrialAndErrorRemoval
     {
         public static bool WorkInProgress { get; private set; }
@@ -88,7 +126,7 @@ namespace IncludeToolbox
         private async Task RemoveAsync(Descriptor desc)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var dialog = await StartProgressDialogAsync(desc.filename, desc.lines.Length + 1);
+            using DialogGuard dialog = new(await StartProgressDialogAsync(desc.filename, desc.lines.Length + 1));
             int delta = 0;
             using AsyncDispatcher dispatcher = new();
             int step = 0;
@@ -97,7 +135,7 @@ namespace IncludeToolbox
             {
                 string waitMessage = $"Removing #includes from '{desc.filename}'";
                 string progressText = $"Trying to remove '{line.Content}' ...";
-                dialog.UpdateProgress(
+                dialog.Dialog.UpdateProgress(
                     szUpdatedWaitMessage: waitMessage,
                     szProgressText: progressText,
                     szStatusBarText: "Running Trial & Error Removal - " + waitMessage + " - " + progressText,
@@ -109,7 +147,6 @@ namespace IncludeToolbox
                 if (canceled)
                 {
                     _ = Output.WriteLineAsync("Operation was cancelled.");
-                    dialog.EndWaitDialog();
                     return;
                 }
 
@@ -135,14 +172,10 @@ namespace IncludeToolbox
                 desc.buffer.Insert(rs.Start, desc.text.Substring(rs.Start + delta, rs.Length));
                 await Output.WriteLineAsync($"Unable to remove {line.FullFile}");
             }
-            dialog.EndWaitDialog();
         }
         //Expected: compilable file .cpp or other
-        public async Task<string> StartAsync(PhysicalFile file, TrialAndErrorRemovalOptions settings)
+        public async Task<string> StartAsync(VCFile file, TrialAndErrorRemovalOptions settings)
         {
-            var vcfile = await file.ToVCProjectItemAsync();
-            if (vcfile == null || ((VCFile)vcfile).FileType != eFileType.eFileTypeCppCode) return $"{file.Name} is not a compilable VC file.";
-
             var document = await VS.Documents.GetDocumentViewAsync(file.FullPath);
             var buffer = document.TextBuffer;
             var snap = buffer.CurrentSnapshot;
@@ -152,7 +185,7 @@ namespace IncludeToolbox
             text = text.Substring(span.Start, span.Length);
 
             var lines = Parser.ParseInclues(text.AsSpan(), settings.IgnoreIfdefs);
-            VCFileConfiguration config = VCUtil.GetVCFileConfig(vcfile);
+            VCFileConfiguration config = VCUtil.GetVCFileConfig(file);
             if (config == null) return $"{file.Name} has failed to yield a config.";
 
             if (!await TestCompileAsync(config))

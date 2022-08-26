@@ -6,8 +6,6 @@
     <String Name="Resources" Value="/IncludeToolbox2022;Component/Resources" />
     <Guid Name="MonikersGuid" Value="{41e64718-3ed1-4ace-aeb4-fbe550d81000}" />
     <ID Name="hash" Value="12" />
-    <ID Name="include13" Value="1" />
-    <ID Name="include16" Value="2" />
     <ID Name="IncludeFormatterIcons_0" Value="3" />
     <ID Name="IncludeFormatterIcons_1" Value="4" />
     <ID Name="IncludeFormatterIcons_2" Value="5" />
@@ -21,16 +19,6 @@
   <Images>
     <Image Guid="$(MonikersGuid)" ID="$(hash)">
       <Source Uri="$(Resources)/hash.png">
-        <Size Value="16" />
-      </Source>
-    </Image>
-    <Image Guid="$(MonikersGuid)" ID="$(include13)">
-      <Source Uri="$(Resources)/include13.png">
-        <Size Value="13" />
-      </Source>
-    </Image>
-    <Image Guid="$(MonikersGuid)" ID="$(include16)">
-      <Source Uri="$(Resources)/include16.png">
         <Size Value="16" />
       </Source>
     </Image>

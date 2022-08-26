@@ -4,15 +4,15 @@
 <ImageManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/VisualStudio/ImageManifestSchema/2014">
   <Symbols>
     <String Name="Resources" Value="/IncludeToolbox2019;Component/Resources" />
-    <Guid Name="MonikersGuid" Value="{36358583-08b5-4870-b61e-13efcebfd341}" />
+    <Guid Name="MonikersGuid" Value="{3bb961da-1724-4f50-bb1a-5a147f88999b}" />
     <ID Name="hash" Value="12" />
     <ID Name="IncludeFormatterIcons_0" Value="1" />
     <ID Name="IncludeFormatterIcons_1" Value="2" />
     <ID Name="IncludeFormatterIcons_2" Value="3" />
     <ID Name="IncludeFormatterIcons_3" Value="4" />
-    <ID Name="IncludeFormatterPackage" Value="5" />
-    <ID Name="IncludeGraphToolbarIcons_0" Value="6" />
-    <ID Name="IncludeGraphToolbarIcons_1" Value="7" />
+    <ID Name="IncludeFormatterPackage" Value="9" />
+    <ID Name="IncludeGraphToolbarIcons_0" Value="10" />
+    <ID Name="IncludeGraphToolbarIcons_1" Value="11" />
     <ID Name="IncludeFormatterIcons" Value="0" />
     <ID Name="IncludeGraphToolbarIcons" Value="1" />
   </Symbols>

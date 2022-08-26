@@ -32,12 +32,14 @@ namespace IncludeToolbox
         public const int ContextMenuGroup = 0x0001;
         public const int MapMenuGroup = 0x0002;
         public const int ItemContextGroup = 0x021A;
+        public const int ProjectContextGroup = 0x021B;
         public const int IncludeWhatYouUseId = 0x0100;
         public const int FormatIncludesId = 0x0101;
         public const int TrialAndError = 0x0102;
         public const int IWYUProjId = 0x0103;
         public const int GenMap = 0x0104;
         public const int RemMap = 0x0105;
+        public const int IncludeGraphId = 0x0106;
         public const int ProjectWideTrialAndErrorRemoval = 0x0110;
     }
 }

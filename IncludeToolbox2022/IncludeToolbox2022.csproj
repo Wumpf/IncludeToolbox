@@ -74,24 +74,22 @@
     <Content Include="Monikers.imagemanifest">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Resource Include="Resources\IncludeGraphToolbarIcons_1.png" />
+    <Resource Include="Resources\IncludeGraphToolbarIcons_0.png" />
     <VSCTInclude Include="MyImageIds.vsct">
       <Generator>VsctGenerator</Generator>
       <LastGenOutput>MyImageIds.cs</LastGenOutput>
     </VSCTInclude>
-    <Resource Include="Resources\IncludeGraphToolbarIcons_1.png" />
-    <Resource Include="Resources\IncludeGraphToolbarIcons_0.png" />
     <Resource Include="Resources\hash.png" />
-    <Resource Include="Resources\include13.png" />
-    <Resource Include="Resources\include16.png" />
     <Resource Include="Resources\IncludeFormatterIcons.png" />
     <Resource Include="Resources\IncludeFormatterIcons_0.png" />
     <Resource Include="Resources\IncludeFormatterIcons_1.png" />
     <Resource Include="Resources\IncludeFormatterIcons_2.png" />
     <Resource Include="Resources\IncludeFormatterIcons_3.png" />
-    <Content Include="Resources\IncludeFormatterPackage.png">
+    <Resource Include="Resources\IncludeFormatterPackage.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
+    </Resource>
     <Resource Include="Resources\IncludeGraphToolbarIcons.png" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>

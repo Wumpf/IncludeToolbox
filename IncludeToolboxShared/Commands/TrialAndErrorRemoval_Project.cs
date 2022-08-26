@@ -12,33 +12,27 @@ namespace IncludeToolbox.Commands
 {
     internal class TAERDispatcher
     {
-        public Queue<SolutionItem> files = new();
+        public Queue<VCFile> files = new();
         public int numTotalRemovedIncludes = 0;
         readonly TrialAndErrorRemoval impl = new();
 
 
-        public void FindFiles(SolutionItem project)
+        public async Task FindFilesAsync(Project project)
         {
-            foreach (var item in project.Children)
+            var vcproj = await project.ToVCProjectAsync();
+            var xfiles = (IVCCollection)vcproj.Files;
+
+            foreach (var item in xfiles)
             {
-                switch (item.Type)
-                {
-                    case SolutionItemType.PhysicalFile:
-                        files.Enqueue(item);
-                        break;
-                    case SolutionItemType.VirtualFolder:
-                    case SolutionItemType.PhysicalFolder:
-                        FindFiles(item);
-                        break;
-                    default:
-                        break;
-                }
+                if (item is not VCFile file || file.FileType != eFileType.eFileTypeCppCode)
+                    continue;
+                files.Enqueue(file);
             }
         }
 
         public async Task ProcessAsync()
         {
-            foreach (PhysicalFile item in files.Where(s=>((VCFile)s.ToVCProjectItemAsync()).FileType == eFileType.eFileTypeCppCode).Cast<PhysicalFile>())
+            foreach (var item in files)
             {
                 _ = Output.WriteLineAsync($"\nStarting Trial And Error Include removal on {item.FullPath}");
                 string err = await impl.StartAsync(item, await TrialAndErrorRemovalOptions.GetLiveInstanceAsync());
@@ -49,6 +43,8 @@ namespace IncludeToolbox.Commands
         }
     }
 
+
+    [Command(PackageIds.ProjectWideTrialAndErrorRemoval)]
     internal sealed class TrialAndErrorRemoval_Project : BaseCommand<TrialAndErrorRemoval_Project>
     {
         protected override Task InitializeCompletedAsync()
@@ -91,7 +87,7 @@ namespace IncludeToolbox.Commands
                 return;
 
             TAERDispatcher dispatcher = new();
-            dispatcher.FindFiles(proj);
+            await dispatcher.FindFilesAsync(proj);
             await dispatcher.ProcessAsync();
         }
     }
