@@ -105,14 +105,14 @@
     </PackageReference>
     <PackageReference Include="Community.VisualStudio.VSCT" Version="16.0.29.6" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.VCProjectEngine">
-      <Version>17.2.32505.173</Version>
+      <Version>16.10.31320.204</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.2.2186">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.11.65">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="System.Memory">
-      <Version>4.5.4</Version>
+      <Version>4.5.5</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

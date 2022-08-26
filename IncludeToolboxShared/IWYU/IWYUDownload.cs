@@ -11,6 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox.IncludeWhatYouUse
 {
@@ -31,6 +32,17 @@ namespace IncludeToolbox.IncludeWhatYouUse
         {
             return Path.Combine(GetDefaultFolder(), "include-what-you-use.exe");
         }
+        public static string GetDefaultMappingPath()
+        {
+            return Path.Combine(GetDefaultFolder(), "msvc.imp");
+        }
+        public static string GetDefaultMappingChecked()
+        {
+            var path = GetDefaultMappingPath();
+            return File.Exists(path) ? path : "";
+        }
+
+
         static public string GetVersionFilePath()
         {
             return Path.Combine(GetDefaultFolder(), "version");
@@ -50,7 +62,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
 
 
 
-        public static  async Task<bool> DownloadAsync(IVsThreadedWaitDialogFactory dialogFactory, IWYUOptions settings)
+        public static async Task<bool> DownloadAsync(IVsThreadedWaitDialogFactory dialogFactory, IWYUOptions settings)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
             if (!await VS.MessageBox.ShowConfirmAsync($"Can't locate include-what-you-use. Do you want to download it from '{IWYUDownload.DisplayRepositorURL}'?"))
@@ -232,24 +244,6 @@ namespace IncludeToolbox.IncludeWhatYouUse
         public void Cancel()
         {
             client?.CancelAsync();
-        }
-
-
-        static public IEnumerable<string> GetMappingFilesNextToIwyuPath(string executablePath)
-        {
-            string targetDirectory = Path.GetDirectoryName(executablePath);
-
-            var impFiles = Directory.EnumerateFiles(targetDirectory).
-                            Where(file => Path.GetExtension(file).Equals(".imp", System.StringComparison.InvariantCultureIgnoreCase));
-            foreach (string dirs in Directory.EnumerateDirectories(targetDirectory))
-            {
-                impFiles.Concat(
-                    Directory.EnumerateFiles(targetDirectory).
-                        Where(file => Path.GetExtension(file).Equals(".imp", System.StringComparison.InvariantCultureIgnoreCase))
-                        );
-            }
-
-            return impFiles;
         }
     }
 }

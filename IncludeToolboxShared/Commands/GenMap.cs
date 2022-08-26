@@ -1,6 +1,7 @@
 ﻿using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using System.Linq;
+using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox
 {

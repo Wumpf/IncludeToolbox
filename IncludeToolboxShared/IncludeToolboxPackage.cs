@@ -1,4 +1,4 @@
-﻿global using Task = System.Threading.Tasks.Task;
+﻿using Task = System.Threading.Tasks.Task;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;

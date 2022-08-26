@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using File = System.IO.File;
+using Task = System.Threading.Tasks.Task;
 
 
 
@@ -102,7 +103,7 @@ namespace IncludeToolbox.Commands
 
             try
             {
-                dialog.StartWaitDialogWithCallback("Include Minimizer", "Running include-what-you-use", null, null, "Running include-what-you-use", true, 0, true, set.Count, 0, cancelCallback);
+                dialog.StartWaitDialogWithCallback("Include Toolbox", "Running include-what-you-use", null, null, "Running include-what-you-use", true, 0, true, set.Count, 0, cancelCallback);
 
                 // needs parallelization, but cancellation is doomed
                 foreach (var v in set)

@@ -6,6 +6,7 @@ using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Task = System.Threading.Tasks.Task;
 
 
 namespace IncludeToolbox.Commands

@@ -1,4 +1,6 @@
 # Version History
+* 3.2.36 
+   * Added IWYU default MSVC mappings with selectable option
 * 3.2.32 
    * Refactored Trial And Error
    * DTE support removed

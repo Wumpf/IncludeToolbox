@@ -3,10 +3,8 @@ using IncludeToolbox.IncludeWhatYouUse;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
-using System.IO;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
 using File = System.IO.File;
+using Task = System.Threading.Tasks.Task;
 
 
 
@@ -73,7 +71,7 @@ namespace IncludeToolbox.Commands
             dlg.CreateInstance(out IVsThreadedWaitDialog2 xdialog);
             IVsThreadedWaitDialog4 dialog = xdialog as IVsThreadedWaitDialog4;
 
-            dialog.StartWaitDialogWithCallback("Include Minimizer", "Running include-what-you-use", null, null, "Running include-what-you-use", true, 0, true, 0, 0, cancelCallback);
+            dialog.StartWaitDialogWithCallback("Include Toolbox", "Running include-what-you-use", null, null, "Running include-what-you-use", true, 0, true, 0, 0, cancelCallback);
 
             bool result = false;
             try

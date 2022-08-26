@@ -24,6 +24,7 @@ namespace IncludeToolbox
         bool? download_required = null;
         bool pch = false;
         bool nodefault = false;
+        bool provided = true;
         bool transitives = false;
         bool warn = false;
         bool always = false;
@@ -73,6 +74,12 @@ namespace IncludeToolbox
         [Description("If true, turns default gcc iwyu STL bindings off. Useful for STL map implementation.")]
         [DefaultValue(false)]
         public bool NoDefault { get { return nodefault; } set { OnChangeEvent(); nodefault = value; } }
+        
+        [Category("General")]
+        [DisplayName("Use Provided Maps")]
+        [Description("If true, uses provided MSVC mappings from repository. Their location is C:/Users/$(USERNAME)/iwyu/msvc.imp")]
+        [DefaultValue(true)]
+        public bool UseProvided { get { return provided; } set { OnChangeEvent(); provided = value; } }
         
         [Category("General")]
         [DisplayName("Only Transitive")]

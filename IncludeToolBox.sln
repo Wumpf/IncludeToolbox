@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.4.32804.182
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32630.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IncludeToolboxShared", "IncludeToolboxShared\IncludeToolboxShared.shproj", "{C50C4863-6200-4E51-837A-31FEBC09C8B2}"
 EndProject
@@ -9,38 +9,57 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncludeToolbox2022", "Inclu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncludeToolbox2019", "IncludeToolbox2019\IncludeToolbox2019.csproj", "{A81A5332-6A20-4F3B-90B4-E55985B9CF59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests\Tests.csproj", "{34631D93-26A2-4682-8C7C-B2042CD7D872}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Tests\Tests\Tests.csproj", "{34631D93-26A2-4682-8C7C-B2042CD7D872}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		IncludeToolboxShared\IncludeToolboxShared.projitems*{7d29cece-07d3-4417-9d63-1362852f18f3}*SharedItemsImports = 4
+		IncludeToolboxShared\IncludeToolboxShared.projitems*{a81a5332-6a20-4f3b-90b4-e55985b9cf59}*SharedItemsImports = 4
+		IncludeToolboxShared\IncludeToolboxShared.projitems*{c50c4863-6200-4e51-837a-31febc09c8b2}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|arm64 = Debug|arm64
 		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|arm64 = Release|arm64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|arm64.Build.0 = Debug|Any CPU
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|x86.ActiveCfg = Debug|x86
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Debug|x86.Build.0 = Debug|x86
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|arm64.ActiveCfg = Release|Any CPU
+		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|arm64.Build.0 = Release|Any CPU
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|x86.ActiveCfg = Release|x86
 		{7D29CECE-07D3-4417-9D63-1362852F18F3}.Release|x86.Build.0 = Release|x86
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|arm64.Build.0 = Debug|Any CPU
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|x86.ActiveCfg = Debug|x86
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Debug|x86.Build.0 = Debug|x86
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|arm64.ActiveCfg = Release|Any CPU
+		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|arm64.Build.0 = Release|Any CPU
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|x86.ActiveCfg = Release|x86
 		{A81A5332-6A20-4F3B-90B4-E55985B9CF59}.Release|x86.Build.0 = Release|x86
 		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|arm64.Build.0 = Debug|Any CPU
 		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Debug|x86.Build.0 = Debug|Any CPU
 		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|arm64.ActiveCfg = Release|Any CPU
+		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|arm64.Build.0 = Release|Any CPU
 		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|x86.ActiveCfg = Release|Any CPU
 		{34631D93-26A2-4682-8C7C-B2042CD7D872}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
@@ -49,10 +68,5 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {87A2994A-8E27-4066-8C05-7E4DD461D23D}
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		IncludeToolboxShared\IncludeToolboxShared.projitems*{7d29cece-07d3-4417-9d63-1362852f18f3}*SharedItemsImports = 4
-		IncludeToolboxShared\IncludeToolboxShared.projitems*{a81a5332-6a20-4f3b-90b4-e55985b9cf59}*SharedItemsImports = 4
-		IncludeToolboxShared\IncludeToolboxShared.projitems*{c50c4863-6200-4e51-837a-31febc09c8b2}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

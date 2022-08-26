@@ -6,18 +6,19 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox.IncludeWhatYouUse
 {
     internal class IWYU
     {
-        Process process = new();
+        readonly Process process = new();
         string output = "";
         string command_line = "";
-        string support_path = "";
-        string support_cpp_path = "";
+        readonly string support_path = "";
+        readonly string support_cpp_path = "";
 
-        public string ProcOutput { get =>output; }
+        public string ProcOutput { get => output; }
 
         public IWYU()
         {
@@ -56,6 +57,12 @@ namespace IncludeToolbox.IncludeWhatYouUse
                 args.Add("--transitive_includes_only");
             if (settings.NoDefault)
                 args.Add("--no_default_mappings");
+            if (settings.UseProvided)
+            {
+                var path = IWYUDownload.GetDefaultMappingChecked();
+                if (!string.IsNullOrEmpty(path))
+                    args.Add(string.Format("--mapping_file=\"{0}\"", path));
+            }
             if (settings.MappingFile != "")
                 args.Add(string.Format("--mapping_file=\"{0}\"", settings.MappingFile));
             args.Add("--max_line_length=256"); // output line for commentaries

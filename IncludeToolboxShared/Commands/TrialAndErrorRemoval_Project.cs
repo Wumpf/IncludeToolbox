@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Project = Community.VisualStudio.Toolkit.Project;
+using Task = System.Threading.Tasks.Task;
 
 namespace IncludeToolbox.Commands
 {
