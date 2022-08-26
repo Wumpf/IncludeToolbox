@@ -8,8 +8,8 @@ namespace IncludeToolbox
     internal struct NSTracker
     {
         Stack<KeyValuePair<int, bool>> nsscan = new();
-        public int Start { get; set ; }
-        public bool Empty { get; set; }
+        public int Start { get; set ; } = 0;
+        public bool Empty { get; set; } = true;
 
         public NSTracker()
         {
