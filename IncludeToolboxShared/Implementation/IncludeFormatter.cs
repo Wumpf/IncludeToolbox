@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Text;
+﻿using Community.VisualStudio.Toolkit;
+using Microsoft.VisualStudio.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -101,6 +102,19 @@ namespace IncludeToolbox.Formatter
 
             return outSortedList.ToArray();
         }
+
+        private static void RemoveDuplicates(IncludeLine[] includes)
+        {
+            HashSet<string> uniqueIncludes = new();
+            uniqueIncludes.UnionWith(includes.Where(s => s.Keep).Select(s => s.FullFile));
+
+            for (int i = 0; i < includes.Length; i++)
+            {
+                ref var r = ref includes[i];
+                if (!r.Keep && !uniqueIncludes.Add(r.FullFile))
+                    r.SetFullContent("");
+            }
+        }
         private static IncludeLine[] SortIncludeBatch(FormatOptions settings,
                                                           string[] precedenceRegexes,
                                                           IncludeLine[] includeBatch)
@@ -182,32 +196,52 @@ namespace IncludeToolbox.Formatter
             if (settings.IgnoreFileRelative)
                 formatingDirs = formatingDirs.Skip(1);
 
+            if (settings.RemoveDuplicates)
+                RemoveDuplicates(lines);
             if (settings.PathFormat != PathMode.Unchanged)
                 FormatPaths(lines, settings.PathFormat, formatingDirs);
 
             FormatDelimiters(lines, settings.DelimiterFormatting);
             FormatSlashes(lines, settings.SlashFormatting);
 
+
             // Sorting. Ignores non-include lines.
             return SortIncludes(lines, settings, documentName);
         }
 
-        public static void ApplyChanges(IncludeLine[] includes, ITextEdit edit, string text, int relative_pos, bool remove_empty = true)
+
+        private static IEnumerable<KeyValuePair<Span, string>> RemoveWhitespaces(this IEnumerable<KeyValuePair<Span, string>> e, string text)
         {
-            var lb = Utils.GetLineBreak(edit);
+            int start = 0;
+            foreach (var a in e)
+            {
+                var x = a;
+                if (start != 0 && a.Key.Start - start > 0)
+                {
+                    ReadOnlySpan<char> subspan = text.AsSpan(start, a.Key.Start - start);
+                    if (subspan.IsWhiteSpace())
+                        x = new(new(start, a.Key.Start - start + a.Key.Length), a.Value);
+                }
+                start = x.Key.End;
+                yield return x;
+            }
+        }
+        public static void ApplyChanges(IncludeLine[] includes, DocumentView doc, string text, int relative_pos, bool remove_empty = true)
+        {
+            var lb = Utils.GetLineBreak(doc.TextView);
             var enumerator = includes
                 .OrderBy(s => s.line)
                 .Zip(includes,
-                (a, b) => { return new KeyValuePair<Span, string>(a.ReplaceSpan(relative_pos), b.Project(text)); });
+                (a, b) => { return new KeyValuePair<Span, string>(a.span, b.Project(text)); });
 
-            string append = "";
-            if (!remove_empty) append = lb;
 
+            using var edit = doc.TextBuffer.CreateEdit();
+
+            if (remove_empty) enumerator = enumerator.RemoveWhitespaces(text);
             foreach (var line in enumerator)
-            {
-                var rep = line.Value + append;
-                edit.Replace(line.Key, rep);
-            }
+                edit.Replace(line.Key.Move(relative_pos), line.Value);
+
+            edit.Apply();
         }
     }
 }

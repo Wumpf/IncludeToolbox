@@ -92,7 +92,7 @@ namespace IncludeToolbox.Commands
 
 
             if (settings.RemoveENS)
-                IWYUApply.ClearNamespaces(doc.TextBuffer.CreateEdit());
+                IWYUApply.ClearNamespaces(doc);
             if (settings.Format)
                 await IWYUApply.FormatAsync(doc);
             if (settings.FormatDoc)

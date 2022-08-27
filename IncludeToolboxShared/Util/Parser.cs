@@ -78,28 +78,19 @@ namespace IncludeToolbox
             private readonly List<Namespace> namespaces;
             private readonly List<FWDDecl> decls;
             private readonly List<IncludeLine> includes;
-            private readonly int last_include = -1;
+            private readonly int insertion_point = 0;
 
             public List<Namespace> Namespaces { get => namespaces; }
             public List<FWDDecl> Declarations { get => decls; }
             public List<IncludeLine> Includes { get => includes; }
-            public int LastInclude { get => last_include; }
+            public int InsertionPoint { get => insertion_point; }
 
-            public Output(List<Namespace> namespaces, List<FWDDecl> decls, List<IncludeLine> includes, int last_include)
+            public Output(List<Namespace> namespaces, List<FWDDecl> decls, List<IncludeLine> includes, int insertion_point = 0)
             {
                 this.namespaces = namespaces;
                 this.decls = decls;
                 this.includes = includes;
-                this.last_include = last_include;
-                if (last_include == -1)
-                {
-                    if (includes.Count == 0)
-                    {
-                        this.last_include = 0;
-                        return;
-                    }
-                    this.last_include = includes.Last().span.End; //empty file and include
-                }
+                this.insertion_point = insertion_point;
             }
         }
 
@@ -263,12 +254,14 @@ namespace IncludeToolbox
             Lexer.Context lctx = new(text);
             Parser.Context pctx = new();
             bool accept = false;
+            bool pragma = false;
             bool include_end = false;
 
+            int insertion_point = 0;
+            int preproc = 0;
             int start = 0;
 
-            Token tok = lctx.GetToken(accept);
-            int last_include = -1; //eof
+            Token tok = lctx.GetToken(accept, false);
 
 
             while (pctx.expected_tokens.Count != 0 && tok.valid())
@@ -284,26 +277,37 @@ namespace IncludeToolbox
                 if (!accept || expect != tok.Type)
                 {
                     pctx.Clear(); // unexpected token, start anew
-                    if (tok.Type == TType.OpenBr) // if scope, probably function or class
-                        FFWD(ref lctx, (int)pctx.Scope, (int)pctx.Scope + 1);
-                    if (tok.Type == TType.CloseBr)
-                        pctx--;
-                    tok = lctx.GetToken(accept);
+
+                    switch (tok.Type)
+                    {
+                        case TType.OpenBr: // if scope, probably function or class
+                            FFWD(ref lctx, (int)pctx.Scope, (int)pctx.Scope + 1); break;
+                        case TType.CloseBr:
+                            pctx--; break;
+                        case TType.Pragma:
+                            pragma = true; tok = lctx.GetToken(true, false); continue;
+                        case TType.ID:
+                            if (pragma && tok.Value.SequenceEqual("once".AsSpan()))
+                                insertion_point = tok.End; break;
+                    }
+
+                    preproc += tok.IsPreprocStart && includes.Any() ? 1 : 0;
+                    preproc -= preproc>0?tok.IsPreprocEnd ? 1 : 0:0;
+
+                    tok = lctx.GetToken(accept, false);
                     decl.type = TType.Null; //interference with enum{} class;
                     continue;
                 }
 
                 pctx.expected_tokens.Pop();
 
-                if (!disable_count && !include_end 
-                    && expect != TType.Include 
-                    && expect != TType.AngleID 
-                    && expect != TType.QuoteID
-                    && includes.Count > 0)
-                {
-                    include_end = true; 
-                    last_include = includes.Last().span.End;
-                }
+
+                if (!disable_count && !include_end
+                && expect != TType.Include
+                && expect != TType.AngleID
+                && expect != TType.QuoteID
+                && includes.Count > 0)
+                { include_end = true; }
 
                 switch (expect)
                 {
@@ -354,9 +358,11 @@ namespace IncludeToolbox
                         var begin = tok.Position - start;
                         inc.FullFile = tok.Value.ToString();
                         inc.delimiter = tok.Type == TType.AngleID ? DelimiterMode.AngleBrackets : DelimiterMode.Quotes;
-                        
                         inc.span = new(start, tok.End - start);
                         inc.file_subspan = new(begin, tok.Value.Length); // subspan of file for replacement
+
+                        if (!include_end && !disable_count && preproc == 0) insertion_point = tok.End;
+
                         includes.Add(inc);
                         inc = new();
                         break;
@@ -375,9 +381,9 @@ namespace IncludeToolbox
                 if (tok.Type == TType.CloseBr)
                     pctx--;
 
-                tok = lctx.GetToken(accept);
+                tok = lctx.GetToken(accept, false);
             }
-            return new Output(namespaces, fwd, includes, last_include);
+            return new Output(namespaces, fwd, includes, insertion_point);
         }
         public static Output Parse(string text)
         {

@@ -122,10 +122,10 @@
     <Resource Include="Resources\IncludeGraphToolbarIcons.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\IncludeFormatterPackage.png">
+    <Content Include="Resources\IncludeFormatterPackage.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
-    </Resource>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <VSCTInclude Include="MyImageIds.vsct">

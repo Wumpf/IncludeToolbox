@@ -53,9 +53,7 @@ namespace IncludeToolbox.Commands
             var formated_lines = Formatter.IncludeFormatter.FormatIncludes(text.AsSpan(), doc.FilePath, include_directories, settings);
 
             // Overwrite.
-            using var edit = doc.TextBuffer.CreateEdit();
-            Formatter.IncludeFormatter.ApplyChanges(formated_lines, edit, text, selection_span.Start, settings.RemoveEmptyLines);
-            edit.Apply();
+            Formatter.IncludeFormatter.ApplyChanges(formated_lines, doc, text, selection_span.Start, settings.RemoveEmptyLines);
         }
     }
 }

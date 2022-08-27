@@ -15,17 +15,9 @@ namespace IncludeToolbox
 
     public static class Utils
     {
-        public static string GetLineBreak(ITextEdit edit)
-        {
-            return GetLineBreak(edit.Snapshot);
-        }
         public static string GetLineBreak(IWpfTextView view)
         {
             return view.Options.GetNewLineCharacter();
-        }
-        internal static string GetLineBreak(ITextSnapshot snapshot)
-        {
-            return snapshot.Lines.ElementAt(0).GetLineBreakText(); //if there is some way to retreive interface of nl counter, I'll use it
         }
 
         public static Span GetIncludeSpan(string text)

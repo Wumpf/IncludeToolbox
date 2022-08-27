@@ -25,6 +25,8 @@ namespace IncludeToolbox
 
         public FWDDecl() { }
 
+        public bool Valid => !string.IsNullOrEmpty(ID);
+
         public override bool Equals(object obj)
         {
             return obj is FWDDecl decl &&
@@ -71,7 +73,7 @@ namespace IncludeToolbox
         public bool Keep => keep;
         public bool Valid => !string.IsNullOrEmpty(file);
         public int NewlineLength => newlineChar switch { NewlineChar.N => 0, NewlineChar.CR => 2, _ => 1 };
-
+        public int End => span.End;
 
 
 

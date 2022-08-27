@@ -1,6 +1,7 @@
 ﻿using Community.VisualStudio.Toolkit;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.VCProjectEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,10 @@ namespace IncludeToolbox
 {
     public static class VSToolkitExtension
     {
+        public static Span Move(this Span span, int relative_pos)
+        {
+            return new(span.Start + relative_pos, span.Length);
+        }
         public static async Task<VCProject> ToVCProjectAsync(this Project project)
         {
             project.GetItemInfo(out var hierarchy, out _, out _);

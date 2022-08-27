@@ -35,12 +35,16 @@ namespace IncludeToolbox
             OpenBr,
             CloseBr,
 
+            Pragma,
+
             If,
             Ifdef,
             Ifndef,
+
             Elif,
             Else,
             Elifdef,
+
             Endif,
 
             T0,
@@ -65,6 +69,8 @@ namespace IncludeToolbox
             public int End { get { return pos + Value.Length; } }
             public ReadOnlySpan<char> Value => value;
             public TType Type => type;
+            public bool IsPreprocStart => type >= TType.If && type <= TType.Ifndef;
+            public bool IsPreprocEnd => type == TType.Endif;
 
             public Token(TType type, int pos, ReadOnlySpan<char> value)
             {
@@ -299,27 +305,44 @@ namespace IncludeToolbox
                             tk = TryAssociateWith("truct".AsSpan(), TType.Struct);
                             break;
                         case '#':
+                            //stupid, but rarely occurring
                             if (desc.ignore_ifdefs)
-                                tk = TryAssociateWith("include".AsSpan(), TType.Include);
+                            {
+                                c = Prefetch();
+                                switch (c)
+                                {
+                                    case 'i': tk = TryAssociateWith("include".AsSpan(), TType.Include); break;
+                                    case 'p': tk = TryAssociateWith("pragma".AsSpan(), TType.Pragma); break;
+                                }
+                            }
                             else
                             {
-                                //stupid, but rarely occurring
-                                tk = TryAssociateWith("include".AsSpan(), TType.Include);
-                                if (tk.valid()) return tk;
-                                tk = TryAssociateWith("if".AsSpan(), TType.If);
-                                if (tk.valid()) return tk;
-                                tk = TryAssociateWith("ifdef".AsSpan(), TType.Ifdef);
-                                if (tk.valid()) return tk;
-                                tk = TryAssociateWith("ifndef".AsSpan(), TType.Ifndef);
-                                if (tk.valid()) return tk;
-                                tk = TryAssociateWith("elif".AsSpan(), TType.Elif);
-                                if (tk.valid()) return tk;
-                                tk = TryAssociateWith("else".AsSpan(), TType.Else);
-                                if (tk.valid()) return tk;
-                                tk = TryAssociateWith("elifdef".AsSpan(), TType.Elifdef);
-                                if (tk.valid()) return tk;
-                                tk = TryAssociateWith("endif".AsSpan(), TType.Endif);
-                                if (tk.valid()) return tk;
+                                c = Prefetch();
+                                switch (c)
+                                {
+                                    case 'i':
+                                        tk = TryAssociateWith("include".AsSpan(), TType.Include);
+                                        if (tk.valid()) return tk;
+                                        tk = TryAssociateWith("if".AsSpan(), TType.If);
+                                        if (tk.valid()) return tk;
+                                        tk = TryAssociateWith("ifdef".AsSpan(), TType.Ifdef);
+                                        if (tk.valid()) return tk;
+                                        tk = TryAssociateWith("ifndef".AsSpan(), TType.Ifndef);
+                                        if (tk.valid()) return tk;
+                                        break;
+                                    case 'p':
+                                        tk = TryAssociateWith("pragma".AsSpan(), TType.Pragma); break;
+                                    case 'e':
+                                        tk = TryAssociateWith("elif".AsSpan(), TType.Elif);
+                                        if (tk.valid()) return tk;
+                                        tk = TryAssociateWith("else".AsSpan(), TType.Else);
+                                        if (tk.valid()) return tk;
+                                        tk = TryAssociateWith("elifdef".AsSpan(), TType.Elifdef);
+                                        if (tk.valid()) return tk;
+                                        tk = TryAssociateWith("endif".AsSpan(), TType.Endif);
+                                        if (tk.valid()) return tk;
+                                        break;
+                                }
                             }
                             break;
                         case 'e':
