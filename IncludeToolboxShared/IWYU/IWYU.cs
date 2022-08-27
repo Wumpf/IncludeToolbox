@@ -125,7 +125,7 @@ namespace IncludeToolbox.IncludeWhatYouUse
             File.WriteAllText(support_path, cmd);
 
             var ext = Path.GetExtension(file);
-            if (ext == ".h" || ext == ".hpp")
+            if (ext == ".h" || ext == ".hpp" || ext == ".hxx")
             {
                 File.WriteAllText(support_cpp_path, "#include \"" + file + "\"");
                 file = " -Xiwyu --check_also=" + file;

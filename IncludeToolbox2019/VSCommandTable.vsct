@@ -126,7 +126,7 @@
 	<VisibilityConstraints>
 		<VisibilityItem guid="IncludeToolbox" id="GenMap" context="GHeaderOnly"/>
 		<VisibilityItem guid="IncludeToolbox" id="IncludeWhatYouUseId" context="GOnlyVC"/>
-		<VisibilityItem guid="IncludeToolbox" id="TrialAndError" context="GOnlyCpp"/>
+		<VisibilityItem guid="IncludeToolbox" id="TrialAndError" context="GOnlyVC"/>
 	</VisibilityConstraints>
 	<KeyBindings>
 		<KeyBinding guid="IncludeToolbox" id="IncludeWhatYouUseId" key1="K" key2="I" mod1="CONTROL" editor="guidVSStd97"/>
@@ -156,6 +156,5 @@
 		<!-- Visibility Constraints -->
 		<GuidSymbol name="GHeaderOnly" value="{a34e853e-8679-4a07-918e-982a1b3b0a6b}"/>
 		<GuidSymbol name="GOnlyVC" value="{1175290a-3e8f-4718-868c-c08b5d2b09a7}"/>
-		<GuidSymbol name="GOnlyCpp" value="{bf397895-9307-431f-a823-1c85d430243a}"/>
 	</Symbols>
 </CommandTable>

@@ -1,4 +1,6 @@
 # Version History
+* 3.2.47
+   * Enabled Trial and Error Include Removal for header files.
 * 3.2.43
    * Added more tests for parser
    * Fixed Include formatter not deleting empty lines

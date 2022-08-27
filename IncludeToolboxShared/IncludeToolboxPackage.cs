@@ -22,12 +22,7 @@ namespace IncludeToolbox
     expression: "one & two",
     termNames: new[] { "one", "two" },
     termValues: new[] { @"ActiveProjectCapability:VisualC", @"HierSingleSelectionName:.(h|hpp|hxx|cpp|c|cxx)$" }
-)]    
-    [ProvideUIContextRule(PackageGuids.GOnlyCppString, "UIOnlyCpp",
-    expression: "one & two",
-    termNames: new[] { "one", "two" },
-    termValues: new[] { @"ActiveProjectCapability:VisualC", @"HierSingleSelectionName:.(cpp|c|cxx)$" }
-)]    
+)]   
     [ProvideUIContextRule(PackageGuids.GHeaderOnlyString, "UIOnlyHead",
     expression: "one & two",
     termNames: new[] { "one", "two" },
