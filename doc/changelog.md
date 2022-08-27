@@ -1,4 +1,11 @@
 # Version History
+* 3.2.43
+   * Added more tests for parser
+   * Fixed Include formatter not deleting empty lines
+   * Fixed Empty namespace removal
+   * Added brains to Precise mode of IWYU, now it ignores #ifdef preprocessor blocks for insertion (no more insertion in #if block only because it is the last include)
+   * Fixed general newline parser bugs (when it failed to parse include only because there was no newline in the selection)
+   * Newline char is picked from the editor options rather than from string (O(n)->O(1))
 * 3.2.36 
    * Added IWYU default MSVC mappings with selectable option
 * 3.2.32 

@@ -37,12 +37,10 @@ namespace IncludeToolbox
             Formatter.IncludeFormatter.ApplyChanges(result, doc, slice, span.Start);
         }
 
-        public static void ApplyCheap(ITextEdit edit, string result, bool commentary)
+        public static void ApplyCheap(ITextEdit edit, string result, bool commentary, string lb)
         {
             if (!commentary)
             {
-                var lb = Utils.GetLineBreak(edit);
-
                 result = string.Join(lb, result.Split('\n')
                     .Select(s =>
                     {
@@ -70,13 +68,15 @@ namespace IncludeToolbox
             int endp = part.IndexOf("---");
             string path = part.Substring(0, part.IndexOf(':', 3));
             var doc = await VS.Documents.OpenAsync(path);
+            var lb = Utils.GetLineBreak(doc.TextView);
+
             using var edit = doc.TextBuffer.CreateEdit();
 
             int endl = part.IndexOf("\n");
             string result = part.Substring(endl, endp - endl);
             ApplyCheap(edit,
                 result,
-                settings.Comms != Comment.No);
+                settings.Comms != Comment.No, lb);
 
             edit.Apply();
         }
