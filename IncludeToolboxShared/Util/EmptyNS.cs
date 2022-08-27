@@ -128,8 +128,8 @@ namespace IncludeToolbox
                 switch (expect)
                 {
                     case TType.Namespace:
-                        tracker.Push();
                         tracker.Start = tok.Position;
+                        tracker.Push();
                         break;
                     case TType.CloseBr:
                         if (tracker.Empty)

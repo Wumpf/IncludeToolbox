@@ -78,22 +78,19 @@ namespace IncludeToolbox
             private readonly List<Namespace> namespaces;
             private readonly List<FWDDecl> decls;
             private readonly List<IncludeLine> includes;
-            private readonly int last_include = -1;
+            private readonly int insertion_point = 0;
 
             public List<Namespace> Namespaces { get => namespaces; }
             public List<FWDDecl> Declarations { get => decls; }
             public List<IncludeLine> Includes { get => includes; }
-            public int LastInclude { get => last_include; }
+            public int InsertionPoint { get => insertion_point; }
 
-            public Output(List<Namespace> namespaces, List<FWDDecl> decls, List<IncludeLine> includes, int force_begin = 0)
+            public Output(List<Namespace> namespaces, List<FWDDecl> decls, List<IncludeLine> includes, int insertion_point = 0)
             {
                 this.namespaces = namespaces;
                 this.decls = decls;
                 this.includes = includes;
-
-                this.last_include = includes.FindLast(s => s.line == 0).span.End;
-                if (last_include == 0)
-                    last_include = force_begin;
+                this.insertion_point = insertion_point;
             }
         }
 
@@ -258,12 +255,13 @@ namespace IncludeToolbox
             Parser.Context pctx = new();
             bool accept = false;
             bool pragma = false;
+            bool include_end = false;
 
-            int force_start = 0;
+            int insertion_point = 0;
             int preproc = 0;
             int start = 0;
 
-            Token tok = lctx.GetToken(accept);
+            Token tok = lctx.GetToken(accept, false);
 
 
             while (pctx.expected_tokens.Count != 0 && tok.valid())
@@ -290,11 +288,11 @@ namespace IncludeToolbox
                             pragma = true; tok = lctx.GetToken(true, false); continue;
                         case TType.ID:
                             if (pragma && tok.Value.SequenceEqual("once".AsSpan()))
-                                force_start = tok.End; break;
+                                insertion_point = tok.End; break;
                     }
 
                     preproc += tok.IsPreprocStart && includes.Any() ? 1 : 0;
-                    preproc -= tok.IsPreprocEnd ? 1 : 0;
+                    preproc -= preproc>0?tok.IsPreprocEnd ? 1 : 0:0;
 
                     tok = lctx.GetToken(accept, false);
                     decl.type = TType.Null; //interference with enum{} class;
@@ -302,6 +300,14 @@ namespace IncludeToolbox
                 }
 
                 pctx.expected_tokens.Pop();
+
+
+                if (!disable_count && !include_end
+                && expect != TType.Include
+                && expect != TType.AngleID
+                && expect != TType.QuoteID
+                && includes.Count > 0)
+                { include_end = true; }
 
                 switch (expect)
                 {
@@ -352,9 +358,11 @@ namespace IncludeToolbox
                         var begin = tok.Position - start;
                         inc.FullFile = tok.Value.ToString();
                         inc.delimiter = tok.Type == TType.AngleID ? DelimiterMode.AngleBrackets : DelimiterMode.Quotes;
-                        inc.line = preproc > 0 ? 1 : 0; //disable count for preprocessed includes
                         inc.span = new(start, tok.End - start);
                         inc.file_subspan = new(begin, tok.Value.Length); // subspan of file for replacement
+
+                        if (!include_end && !disable_count && preproc == 0) insertion_point = tok.End;
+
                         includes.Add(inc);
                         inc = new();
                         break;
@@ -375,7 +383,7 @@ namespace IncludeToolbox
 
                 tok = lctx.GetToken(accept, false);
             }
-            return new Output(namespaces, fwd, includes, force_start);
+            return new Output(namespaces, fwd, includes, insertion_point);
         }
         public static Output Parse(string text)
         {

@@ -77,5 +77,41 @@ namespace Tests
             Assert.IsTrue(lines.Declarations.Count == 3);
             Assert.IsTrue(lines.Namespaces.Any());
         }
+
+        [Test]
+        public void TestPreprocessor()
+        {
+            var text = "#include <a>\r\n#if 0\r\n#include <b>\r\n#endif";
+            var lines = Parser.Parse(text);
+            Assert.IsTrue(lines.Includes.Any());
+            Assert.IsTrue(lines.Includes.Count == 2);
+
+            Assert.That(lines.InsertionPoint, Is.EqualTo(lines.Includes[0].End));
+
+            var text2 = "#if 0\r\n#include <a>\r\n #include <b>\r\n#endif";
+            var lines2 = Parser.Parse(text2);
+            Assert.IsTrue(lines2.Includes.Any());
+            Assert.IsTrue(lines2.Includes.Count == 2);
+
+            Assert.That(lines2.InsertionPoint, Is.EqualTo(lines2.Includes[1].End));
+
+            var text3 = "#if 0\r\n#include <a>\r\n#endif #include <b>\r\n";
+            var lines3 = Parser.Parse(text3);
+            Assert.IsTrue(lines3.Includes.Any());
+            Assert.IsTrue(lines3.Includes.Count == 2);
+
+            Assert.That(lines3.InsertionPoint, Is.EqualTo(lines3.Includes[1].End));
+        }
+        
+        [Test]
+        public void TestNonConventional()
+        {
+            var text = "#include <a>\r\n  namespace a{} \r\n#include <b>";
+            var lines = Parser.Parse(text);
+            Assert.IsTrue(lines.Includes.Any());
+            Assert.IsTrue(lines.Includes.Count == 2);
+
+            Assert.That(lines.InsertionPoint, Is.EqualTo(lines.Includes[0].End));
+        }
     }
 }

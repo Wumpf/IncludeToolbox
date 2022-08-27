@@ -10,14 +10,13 @@ namespace IncludeToolbox
     {
         static readonly string match = "The full include-list for ";
 
-        public static void ClearNamespaces(ITextEdit edit)
+        public static void ClearNamespaces(DocumentView doc)
         {
-            var text = edit.Snapshot.GetText();
+            using var edit = doc.TextBuffer.CreateEdit();
+            var text = doc.TextBuffer.CurrentSnapshot.GetText();
             var rem = Parser.ParseEmptyNamespaces(text);
             foreach (var ns in rem)
-            {
                 edit.Delete(ns);
-            }
             edit.Apply();
         }
 
@@ -25,8 +24,7 @@ namespace IncludeToolbox
         {
             var include_directories = await VCUtil.GetIncludeDirsAsync();
             var settings = await FormatOptions.GetLiveInstanceAsync();
-            using var edit = doc.TextBuffer.CreateEdit();
-            var text = edit.Snapshot.GetText();
+            var text = doc.TextBuffer.CurrentSnapshot.GetText();
             var span = Utils.GetIncludeSpan(text);
             var slice = text.Substring(span.Start, span.Length);
 
@@ -36,8 +34,7 @@ namespace IncludeToolbox
                 include_directories, settings
                 );
 
-            Formatter.IncludeFormatter.ApplyChanges(result, edit, slice, span.Start);
-            edit.Apply();
+            Formatter.IncludeFormatter.ApplyChanges(result, doc, slice, span.Start);
         }
 
         public static void ApplyCheap(ITextEdit edit, string result, bool commentary)
@@ -102,43 +99,11 @@ namespace IncludeToolbox
             using var edit = doc.TextBuffer.CreateEdit();
             var lb = Utils.GetLineBreak(doc.TextView);
 
-
             var add_f = retasks.Declarations.Where(s => s.span.Start < sep_index);
             var rem_f = retasks.Declarations.Where(s => s.span.Start > sep_index);
 
             var add_i = retasks.Includes.Where(s => s.span.Start < sep_index);
             var rem_i = retasks.Includes.Where(s => s.span.Start > sep_index);
-
-
-            foreach (var item in add_i)
-            {
-                edit.Insert(parsed.LastInclude, lb + item.Project(output));
-            }
-
-            DeclNode tree = new(Lexer.TType.Namespace)
-            {
-                LineBreak = lb
-            };
-
-            if (settings.MoveDecls)
-            {
-                tree.AddChildren(parsed.Declarations.Where(s => !rem_f.Contains(s)));
-                foreach (var task in parsed.Declarations)
-                    edit.Delete(task.span);
-            }
-
-            tree.AddChildren(add_f);
-            string result = tree.ToString(std >= Standard.cpp17);
-            edit.Insert(parsed.LastInclude, lb + result);
-
-
-            if (!settings.MoveDecls)
-                foreach (var task in rem_f)
-                {
-                    var found = parsed.Declarations.FindLast(s => s == task);
-                    edit.Delete(found.span);
-                    parsed.Declarations.Remove(found);
-                }
 
             foreach (var task in rem_i)
             {
@@ -147,6 +112,33 @@ namespace IncludeToolbox
                 parsed.Includes.Remove(found);
             }
 
+            DeclNode tree = new(Lexer.TType.Namespace)
+            {
+                LineBreak = lb
+            };
+            if (settings.MoveDecls)
+            {
+                tree.AddChildren(parsed.Declarations.Where(s => !rem_f.Contains(s)));
+                foreach (var task in parsed.Declarations)
+                    edit.Delete(task.span);
+            }
+            else
+            {
+                foreach (var task in rem_f)
+                {
+                    var found = parsed.Declarations.FindLast(s => s == task);
+                    edit.Delete(found.span);
+                    parsed.Declarations.Remove(found);
+                }
+            }
+            tree.AddChildren(add_f);
+
+            string addition = lb + 
+                add_i.Select(s => s.Project(output))
+                .Aggregate((s1, s2) => s1 + lb + s2)
+                + lb + lb + tree.ToString(std >= Standard.cpp17);
+
+            edit.Insert(parsed.InsertionPoint, addition);
             edit.Apply();
         }
     }
