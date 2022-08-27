@@ -20,9 +20,6 @@ namespace IncludeToolbox
 
         public const string GOnlyVCString = "1175290a-3e8f-4718-868c-c08b5d2b09a7";
         public static Guid GOnlyVC = new Guid(GOnlyVCString);
-
-        public const string GOnlyCppString = "bf397895-9307-431f-a823-1c85d430243a";
-        public static Guid GOnlyCpp = new Guid(GOnlyCppString);
     }
     /// <summary>
     /// Helper class that encapsulates all CommandIDs uses across VS Package.

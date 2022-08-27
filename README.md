@@ -60,20 +60,22 @@ All operations are performed in the order in which they occur on the option page
 ## Trial and Error Include Removal
 
 The name says it all: This tool will try to remove an include, recompile, see if it works and proceed to the next one accordingly.  
-The tool can be started an all compilable files in a VC++ by right clicking on the code window. There is also a special version in the Project context menu which will run over every single file in the project (takes very long).
+The tool can be started an all compilable files in a VC++ by right clicking on the code window. There is also a special version in the Project context menu which will run over every single compilable file in the project (takes very long).
 
 Obviously the results of this tool are far from optimal and the process can take a while.
 
-The exact behavior of this command can be controlled in _Tools>Options>Include Toolbox>Trial and Error Include Removal_:
+The exact behavior of this command can be controlled in *Tools>Options>Include Toolbox>Trial and Error Include Removal*:
 
 *   Ignore List  
     A list of regexes. If the content of an include matches any of these, it will never be removed.
 *   Ignore First Include  
-    If true the top most include will always be ignored
+    If true the top most include will always be ignored, does not work in headers
 *   Removal Order  
     Wheater the tool should run from top to bottom or bottom to top (this can make a difference on the end result)
 
 To suppress removal of a single include, add a comment to its line containing `//IWYU pragma: keep`
+
+Since 3.2.47 works for header files as well.
 
 ## Include-What-You-Use Integration
 
@@ -126,3 +128,17 @@ Requires fixes.
     This may sound desirable, but is very messy if there are optional includes (preprocessor) or specific exceptions where not all includes should be in the same place or in the default order.
 *   XY didn't work, what is going on?  
     Look in the output window for Include Toolbox to get more information.
+	
+# Optimal Usage Pattern
+
+1. Start from the header file in your project, that includes only standard library.
+2. Use IWYU and/or TAEIR tool
+3. Add file to mapper with pre-specified .imp file at *Tools>Options>Include Toolbox>Include Mapper*
+4. Add this map file to the IWYU preset at *Tools>Options>Include Toolbox>Include-What-You-Use>Mapping file* 
+5. Go through all the headers in your project, including them in mapper file 
+6. After that go through all .cpp files with the same tools. IWYU has mass processing for several selected files. IThe best way of using this tool is in batches of \4-5 files. 
+7. Compile files to asses the result.
+
+# Final Words
+
+The IWYU itself is far from perfect, TAEIR also, but combinig those tools and Mapping capabilities with other maps, provided by IWYU repo and defaults the results will be just good enough.
