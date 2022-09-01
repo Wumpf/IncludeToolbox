@@ -215,7 +215,7 @@ namespace IncludeToolbox
 					Removed++;
 					continue;
 				}
-				desc.buffer.Insert(rs.Start, desc.text.Substring(rs.Start + delta, rs.Length));
+				desc.buffer.Insert(rs.Start, desc.text.Substring(rs.Start - desc.offset + delta, rs.Length));
 				await Output.WriteLineAsync($"Unable to remove {line.FullFile}");
 			}
 		}
