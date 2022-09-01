@@ -12,7 +12,7 @@ namespace IncludeToolbox.Commands
     internal sealed class TempGuard : IDisposable
     {
         readonly VCFile file;
-        private bool disposedValue;
+        private bool disposedValue = false;
 
         private void Dispose()
         {
@@ -56,12 +56,19 @@ namespace IncludeToolbox.Commands
         async Task<string> TAERHeaderAsync(VCFile file)
         {
             _ = Output.WriteLineAsync($"Starting Trial And Error Include removal on header file {file.FullPath}");
-            File.WriteAllText(support_cpp_path, "#include \"" + file.FullPath + "\"");
+            string xout = "";
+
+            var pch = VCUtil.GetPCH((VCProject)file.project);
+            if (!string.IsNullOrEmpty(pch))
+                xout = "#include \"" + pch + "\"\n";
+
+            File.WriteAllText(support_cpp_path, xout + "#include \"" + file.FullPath + "\"");
 
             var proj = await VS.Solutions.GetActiveProjectAsync();
             var vc = await proj.ToVCProjectAsync();
             var xfile = (VCFile)vc.AddFile(support_cpp_path);
             using TempGuard tg = new(xfile);
+
             return await impl.StartHeaderAsync(file, xfile, await TrialAndErrorRemovalOptions.GetLiveInstanceAsync());
         }
         async Task<string> TAERCodeAsync(VCFile file)

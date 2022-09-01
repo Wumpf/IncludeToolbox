@@ -82,6 +82,15 @@ namespace IncludeToolbox
             return await GetCommandLineAsync(rebuild, await VS.Solutions.GetActiveProjectAsync());
         }
 
+        public static string GetPCH(VCProject proj)
+        {
+            var cfg = proj.ActiveConfiguration;
+            var cl = cfg?.Rules;
+            var com = (IVCRulePropertyStorage2)cl.Item("CL");
+            var xstandard = com.GetEvaluatedPropertyValue("PrecompiledHeader");
+            return xstandard == "Use" ? com.GetEvaluatedPropertyValue("PrecompiledHeaderFile") : "";
+        }
+
         public static async Task<string> GetCommandLineAsync(bool rebuild, Project xproj)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
