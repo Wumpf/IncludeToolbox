@@ -225,7 +225,7 @@ namespace IncludeToolbox
             VCFileConfiguration config = VCUtil.GetVCFileConfig(support);
             if (config == null) return $"{support.Name} has failed to yield a config.";
 
-			return !await TestCompileAsync(config)
+            return !await TestCompileAsync(config)
 				? $"{file.FullPath} failed to compile. Include removal stopped."
 				: await StartGenericAsync(config, document, settings);
 		}
