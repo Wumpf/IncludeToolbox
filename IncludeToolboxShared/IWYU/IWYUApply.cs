@@ -133,11 +133,13 @@ namespace IncludeToolbox
             }
             tree.AddChildren(add_f);
 
-            string addition = lb + 
-                add_i.Select(s => s.Project(output))
-                .Aggregate((s1, s2) => s1 + lb + s2)
-                + lb + lb + tree.ToString(std >= Standard.cpp17);
+            string addition = "";
 
+            foreach (var item in add_i.Select(s => s.Project(output)))
+                addition+=lb+item;
+
+            addition+= lb + lb + tree.ToString(std >= Standard.cpp17);
+                
             edit.Insert(parsed.InsertionPoint, addition);
             edit.Apply();
         }
