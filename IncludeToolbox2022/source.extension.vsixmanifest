@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="IncludeToolbox2022.d3cba4fe-8d65-479b-8436-18d743ee7b53" Version="3.2.0" Language="en-US" Publisher="Agrael" />
+        <Identity Id="IncludeToolbox2022.d3cba4fe-8d65-479b-8436-18d743ee7b53" Version="3.2.54" Language="en-US" Publisher="Agrael" />
         <DisplayName>Include Toolbox 2022</DisplayName>
         <Description xml:space="preserve">Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning.</Description>
         <License>License.txt</License>
