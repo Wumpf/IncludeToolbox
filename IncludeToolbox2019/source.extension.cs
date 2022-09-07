@@ -7,12 +7,12 @@ namespace IncludeToolbox
 {
     internal sealed partial class Vsix
     {
-        public const string Id = "IncludeToolbox2019.1431faa5-aa04-47af-8289-9d887e0696a4";
+        public const string Id = "IncludeToolbox.Andreas Reich.075c2e2b-7b71-45ba-b2e6-c1dadc81cfac";
         public const string Name = "Include Toolbox 2019";
-        public const string Description = @"Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning.";
+        public const string Description = @"Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning. VS2019 compatibility version. For VS2022 visit https://marketplace.visualstudio.com/items?itemName=Agrael.IncludeToolbox2022";
         public const string Language = "en-US";
         public const string Version = "3.2.54";
-        public const string Author = "Agrael";
+        public const string Author = "Wumpf";
         public const string Tags = "Include;IWYU;Include Formatting;Include Sorting;#include;C++;C;Coding";
     }
 }
