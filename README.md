@@ -9,7 +9,7 @@ Include Toolbox consists of 4 different tools. All of them are only applicable t
 ![](/art/itrial.png) **[Command]** Trial and Error Include Removal  
 ![](/art/iwyu.png) **[Command]** [Include-What-You-Use](https://include-what-you-use.org/) Integration  
 ![](/art/AddPageGuides.png) **[Command]** Mapper module for IWYU  
-![](/art/igraph.png)**[Tool Window]** ~~Include Graph~~
+![](/art/igraph.png)**[Tool Window]** Include Graph
 
 ## Links
 
@@ -117,10 +117,18 @@ Mapper has one option, that specifies separator you would like to use, quotes or
 
 To specify relative index use *Relative File Prefix* option. e.g. C:\\users\\map\\a.h with prefix C:\\users will write <map/a.h> to the final map.
 
-## ~~Include Graph~~
+## Include Graph [beta]
 
-Added option page. Soon.
-Requires fixes.
+![Include What You Use](/art/IncludeGraph.png)
+
+Partially restored functionality of include graph. The Graph window is controlled by the `Open in Include Graph` command. 
+
+The command opens a window with lazy parsed #includes. The file names are expandable only if the file described is present in project directory or in any of the additional directories. 
+
+Options are not working right now. DGML save command will be added in future releases.
+
+The graph is not stable, searching for bugs or inconsistensies. Issues pointing inconsistensies are welcome.
+  
 
 # FAQ:
 

@@ -118,7 +118,7 @@ namespace IncludeToolbox
             FullFile.Replace('/', '\\');
         }
 
-        public string Resolve(IEnumerable<string> includeDirectories)
+        public string Resolve(IEnumerable<string> includeDirectories, bool suppress = false)
         {
             foreach (string dir in includeDirectories)
             {
@@ -127,7 +127,8 @@ namespace IncludeToolbox
                     return Utils.GetExactPathName(candidate);
             }
 
-            Output.WriteLine($"Unable to resolve include: '{Content}'");
+            if (!suppress)
+                Output.WriteLine($"Unable to resolve include: '{Content}'");
             return "";
         }
 
@@ -156,6 +157,38 @@ namespace IncludeToolbox
         public static bool operator !=(IncludeLine left, IncludeLine right)
         {
             return !(left == right);
+        }
+    }
+
+    public struct Include
+    {
+        public Include(IncludeLine line, string[] includeDirectories)
+        {
+            file = line.Content; 
+            absolute_path = Resolve(includeDirectories); 
+            this.line = line.line;
+        }
+
+        readonly string file;
+        readonly string absolute_path = "";
+        readonly int line;
+
+        public string File => file;
+        public string AbsolutePath => absolute_path;
+        public int Line => line;
+
+        public string Resolve(string[] includeDirectories)
+        {
+            if (!string.IsNullOrEmpty(absolute_path))
+                return absolute_path;
+
+            foreach (string dir in includeDirectories)
+            {
+                string candidate = Path.Combine(dir, file);
+                if (System.IO.File.Exists(candidate))
+                    return candidate;
+            }
+            return file;
         }
     }
 

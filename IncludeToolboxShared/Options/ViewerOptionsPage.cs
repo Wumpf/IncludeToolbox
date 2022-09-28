@@ -12,21 +12,21 @@ namespace IncludeToolbox
 
     public class ViewerOptions : BaseOptionModel<ViewerOptions>
     {
-        //[Category("Include Graph Parsing")]
-        //[DisplayName("Graph Endpoint Directories")]
-        //[Description("List of absolute directory paths. For any include below these paths, the graph parsing will stop.")]
-        //public string[] NoParsePaths
-        //{
-        //    get { return noParsePaths; }
-        //    set
-        //    {
-        //        // It is critical that the paths are "exact" since we want to use them as with string comparison.
-        //        noParsePaths = value;
-        //        for (int i = 0; i < noParsePaths.Length; ++i)
-        //            noParsePaths[i] = Utils.GetExactPathName(noParsePaths[i]);
-        //    }
-        //}
-        //private string[] noParsePaths;
+        [Category("Include Graph Parsing")]
+        [DisplayName("Graph Endpoint Directories")]
+        [Description("List of absolute directory paths. For any include below these paths, the graph parsing will stop.")]
+        public string[] NoParsePaths
+        {
+            get { return noParsePaths; }
+            set
+            {
+                // It is critical that the paths are "exact" since we want to use them as with string comparison.
+                noParsePaths = value;
+                for (int i = 0; i < noParsePaths.Length; ++i)
+                    noParsePaths[i] = Utils.GetExactPathName(noParsePaths[i]);
+            }
+        }
+        private string[] noParsePaths = new string[0];
 
         [Category("Include Graph DGML")]
         [DisplayName("Create Group Nodes by Folders")]

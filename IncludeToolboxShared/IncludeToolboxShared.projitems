@@ -10,15 +10,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Commands\GenMap.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\IncludeGraph_CodeWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\RemoveMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\RunIWYUProject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\FormatIncludes.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Commands\IncludeGraphToolWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\IncludeGraph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\RunIWYU.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TrialAndErrorRemoval_CodeWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TrialAndErrorRemoval_Project.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Graph\IncludeGraph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\IncludeFormatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IncludeToolboxPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\ViewModel\IncludeTreeViewItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYU.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUApply.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUDownload.cs" />
@@ -27,6 +30,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\MapperOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\TrialAndErrorRemovalOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\ViewerOptionsPage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\ViewModel\HierarchyIncludeTreeViewItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\ViewModel\IncludeGraphViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\View\IncludeGraphToolWindow.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\View\IncludeGraphControl.xaml.cs">
+      <DependentUpon>IncludeGraphControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Util\EmptyNS.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Lexer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\MapManager.cs" />
@@ -35,10 +44,21 @@
     <Compile Include="$(MSBuildThisFileDirectory)Util\ParseIncludes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Parser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\ParserStructures.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Util\PropertyNotify.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\RegexUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Standard.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\TrialAndErrorRemoval.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Util\VCUtil.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\View\IncludeGraphControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="$(MSBuildThisFileDirectory)ToolWindows\View\ToolWindowStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 </Project>

@@ -15,10 +15,13 @@
 			<Group guid="IncludeToolbox" id="ProjectContextGroup" priority="0x0604">
 				<Parent guid="VSMainMenu" id="ProjectNode"/>
 			</Group>
-			<Group guid="IncludeToolbox" id="MapMenuGroup" priority="0x0603">
+			<Group guid="IncludeToolbox" id="IncludeGraphGroup" priority="0x0603">
 				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
 			</Group>
-			<Group guid="IncludeToolbox" id="ContextMenuGroup" priority="0x0604">
+			<Group guid="IncludeToolbox" id="MapMenuGroup" priority="0x0604">
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+			</Group>
+			<Group guid="IncludeToolbox" id="ContextMenuGroup" priority="0x0605">
 				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
 			</Group>
 		</Groups>
@@ -120,6 +123,17 @@
 				</Strings>
 			</Button>
 
+			<Button guid="IncludeToolbox" id="IncludeGraphCodeId" priority="0x0100" type="Button">
+				<Parent guid="IncludeToolbox" id="IncludeGraphGroup" />
+				<Icon guid="ImageCatalogGuid" id="GraphLeftToRight" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Open in Include Graph</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.IncludeGraph</LocCanonicalName>
+				</Strings>
+			</Button>
 		</Buttons>
 	</Commands>
 
@@ -127,6 +141,7 @@
 		<VisibilityItem guid="IncludeToolbox" id="GenMap" context="GHeaderOnly"/>
 		<VisibilityItem guid="IncludeToolbox" id="IncludeWhatYouUseId" context="GOnlyVC"/>
 		<VisibilityItem guid="IncludeToolbox" id="TrialAndError" context="GOnlyVC"/>
+		<VisibilityItem guid="IncludeToolbox" id="IncludeGraphCodeId" context="GOnlyVC"/>
 	</VisibilityConstraints>
 	<KeyBindings>
 		<KeyBinding guid="IncludeToolbox" id="IncludeWhatYouUseId" key1="K" key2="I" mod1="CONTROL" editor="guidVSStd97"/>
@@ -138,6 +153,7 @@
 		<GuidSymbol name="IncludeToolbox" value="{2e77f2e4-5f04-4052-8e63-ca2b41cd0315}">
 			<IDSymbol name="ContextMenuGroup" value="0x0001" />
 			<IDSymbol name="MapMenuGroup" value="0x0002" />
+			<IDSymbol name="IncludeGraphGroup" value="0x0003" />
 			<IDSymbol name="ItemContextGroup" value="0x021A" />
 			<IDSymbol name="ProjectContextGroup" value="0x021B" />
 			<IDSymbol name="IncludeWhatYouUseId" value="0x0100" />
@@ -149,6 +165,7 @@
 			<IDSymbol name="RemMap" value="0x0105" />
 
 			<IDSymbol name="IncludeGraphId" value="0x0106" />
+			<IDSymbol name="IncludeGraphCodeId" value="0x0107" />
 
 			<IDSymbol name="ProjectWideTrialAndErrorRemoval" value="0x0110" />
 		</GuidSymbol>

@@ -1,91 +1,102 @@
-﻿using IncludeToolbox.GraphWindow;
-using Microsoft.VisualStudio.PlatformUI;
+﻿using Community.VisualStudio.Toolkit;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Path = System.IO.Path;
 
-namespace IncludeToolbox.Graph
+namespace IncludeToolbox
 {
-    /// <summary>
-    /// Graph of files including files.
-    /// </summary>
-    public class IncludeGraph
+    public interface IGraphModel
     {
-        public struct Include
-        {
-            /// <summary>
-            /// Absolute path to the file that includes another file.
-            /// </summary>
-            /// <remarks>May be null, signaling that the include line could not be resolved.</remarks>
-            public GraphItem IncludedFile;
+        public Task<IncludeGraph.Item> TryEmplaceAsync(string absolute_filename, string name);
+    }
 
-            /// <summary>
-            /// The original include line in sourceFile.
-            /// </summary>
-            /// <remarks>Depending on the graph generation algorithm, this may be null.</remarks>
-            public Formatter.IncludeLineInfo IncludeLine;
-        }
-
-        public class GraphItem
+    public class IncludeGraph : IGraphModel
+    {
+        public class Item
         {
-            public GraphItem(string absoluteFilename)
+            public Item(string absolute, string formatted, Include[] includes)
             {
-                AbsoluteFilename = absoluteFilename;
-                FormattedName = absoluteFilename;
-                Includes = new List<Include>();
+                AbsoluteFilename = absolute;
+                FormattedName = formatted;
+                Includes = includes;
             }
 
-            /// <summary>
-            /// Absolute path to the file that includes the other files.
-            /// </summary>
-            /// <remarks>
-            /// If an absolute filename can't be provided (e.g. due to resolve failure), this can be any kind of unique file identifier.
-            /// This is also used as key in the graph item dictionary.
-            /// </remarks>
             public string AbsoluteFilename { get; private set; }
-
-            /// <summary>
-            /// A formatted name that can be set from the outside. Is by default the same as AbsoluteFilename.
-            /// </summary>
             public string FormattedName { get; set; }
 
-            /// <summary>
-            /// List of all includes of this file.
-            /// </summary>
-            public List<Include> Includes { get; private set; }
+            public Include[] Includes { get; private set; }
+        }
+
+        public async Task<Item> InitializeAsync(string filename)
+        {
+            graphItems = new();
+            return await TryEmplaceAsync(filename, Path.GetFileNameWithoutExtension(filename));
         }
 
 
-        public IReadOnlyCollection<GraphItem> GraphItems => graphItems.Values;
-
-        /// <summary>
-        /// Map of all files that the graph reaches.
-        /// Use CreateOrAddItem to populate it.
-        /// </summary>
-        private Dictionary<string, GraphItem> graphItems = new Dictionary<string, GraphItem>();
-
-        /// <summary>
-        /// Retrieves item from a given identifying absolute filename.
-        /// </summary>
-        /// <param name="filename">
-        /// Filename of an include, may be relative. Will be normalized internally.
-        /// If an absolute filename can't be provided (e.g. due to resolve failure), this can be any kind of unique file identifier.
-        /// </param>
-        public GraphItem CreateOrGetItem(string filename, out bool isNew)
+        public async Task<Item> InitializeAsync(DocumentView document)
         {
-            filename = Utils.GetExactPathName(filename);
-            return CreateOrGetItem_AbsoluteNormalizedPath(filename, out isNew);
+            graphItems = new();
+            return await TryEmplaceAsync(document);
         }
-
-        public GraphItem CreateOrGetItem_AbsoluteNormalizedPath(string normalizedAbsoluteFilename, out bool isNew)
+        public async Task<Item> TryEmplaceAsync(DocumentView document)
         {
-            GraphItem outItem;
-            isNew = !graphItems.TryGetValue(normalizedAbsoluteFilename, out outItem);
-            if (isNew)
-            {
-                outItem = new GraphItem(normalizedAbsoluteFilename);
-                graphItems.Add(normalizedAbsoluteFilename, outItem);
-            }
+            var absolute_filename = document.FilePath;
+            bool is_new = !graphItems.TryGetValue(absolute_filename, out Item outItem);
+            if (!is_new) return outItem;
+
+            outItem = await ParseFileAsync(document);
+            graphItems.Add(absolute_filename, outItem);
             return outItem;
         }
+        private async Task<Item> ParseFileAsync(DocumentView document)
+        {
+            var incs = await VCUtil.GetIncludeDirsAsync();
+            var path = document.FilePath;
+            var doc_folder = Path.GetDirectoryName(path);
+
+            var inc_arr = new string[] { 
+                Microsoft.VisualStudio.PlatformUI.PathUtil.Normalize(doc_folder)
+                + Path.DirectorySeparatorChar }
+            .Concat(incs).ToArray();
+
+            var text = document.TextBuffer.CurrentSnapshot.GetText();
+            var includes = Parser.ParseInclues(text.AsSpan());
+
+            return new Item(path, Path.GetFileName(path),
+                includes.Select(s => new Include(s, inc_arr)).ToArray());
+        }
+
+
+        public async Task<Item> TryEmplaceAsync(string absolute_filename, string name)
+        {
+            bool is_new = !graphItems.TryGetValue(absolute_filename, out Item outItem);
+            if (!is_new) return outItem;            
+
+            outItem = await ParseFileAsync(absolute_filename, name);
+            graphItems.Add(absolute_filename, outItem);
+            return outItem;
+        }
+
+        private async Task<Item> ParseFileAsync(string absolute_filename, string name)
+        {
+            var doc = await VS.Documents.GetDocumentViewAsync(absolute_filename);
+            doc ??= await VS.Documents.OpenViaProjectAsync(absolute_filename);
+
+            var incs = await VCUtil.GetIncludeDirsAsync();
+            var doc_folder = Path.GetDirectoryName(absolute_filename);
+
+            var inc_arr = new string[] {
+                Microsoft.VisualStudio.PlatformUI.PathUtil.Normalize(doc_folder)
+                + Path.DirectorySeparatorChar }
+            .Concat(incs).ToArray();
+
+            var text = doc.TextBuffer.CurrentSnapshot.GetText();
+            return new Item(absolute_filename, name, Parser.ParseInclues(text.AsSpan()).Select(s=>new Include(s, inc_arr)).ToArray());
+        }
+
+        private Dictionary<string, Item> graphItems = new();
     }
 }
