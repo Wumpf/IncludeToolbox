@@ -164,14 +164,14 @@ namespace IncludeToolbox
     {
         public Include(IncludeLine line, string[] includeDirectories)
         {
+            this.line = line.line;
             file = line.Content; 
             absolute_path = Resolve(includeDirectories); 
-            this.line = line.line;
         }
 
-        readonly string file;
+        readonly string file = "";
         readonly string absolute_path = "";
-        readonly int line;
+        readonly int line = 0;
 
         public string File => file;
         public string AbsolutePath => absolute_path;
