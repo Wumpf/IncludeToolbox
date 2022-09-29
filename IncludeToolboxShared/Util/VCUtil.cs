@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.VCProjectEngine;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static Microsoft.VisualStudio.VSConstants;
@@ -66,15 +67,19 @@ namespace IncludeToolbox
         public static async Task<IEnumerable<string>> GetIncludeDirsAsync()
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-            var proj = await (await VS.Solutions.GetActiveProjectAsync()).ToVCProjectAsync();
+            var actproj = await VS.Solutions.GetActiveProjectAsync();
+            var proj = await actproj.ToVCProjectAsync();
             if (proj == null) { VS.MessageBox.ShowErrorAsync("IWYU Error:", "The project is not a Visual Studio C/C++ type.").FireAndForget(); return null; }
+
+            var dir = Path.GetDirectoryName(actproj.FullPath).Replace('\\', '/');
 
             var cfg = proj.ActiveConfiguration;
             var cl = cfg?.Rules;
             if (cl == null) { VS.MessageBox.ShowErrorAsync("IWYU Error:", "Failed to gather Compiler info.").FireAndForget(); return null; }
             var com = (IVCRulePropertyStorage2)cl.Item("CL");
-            return com.GetEvaluatedPropertyValue("AdditionalIncludeDirectories").Replace('\\','/')
-                .Split(';').Where(s => !string.IsNullOrWhiteSpace(s));
+            var dirs = com.GetEvaluatedPropertyValue("AdditionalIncludeDirectories").Replace('\\','/')
+                .Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).Select(s=>Path.IsPathRooted(s)?s:Path.Combine(dir, s));
+            return dirs;
         }
 
         public static async Task<string> GetCommandLineAsync(bool rebuild)

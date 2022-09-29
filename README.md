@@ -123,7 +123,7 @@ To specify relative index use *Relative File Prefix* option. e.g. C:\\users\\map
 
 Partially restored functionality of include graph. The Graph window is controlled by the `Open in Include Graph` command. 
 
-The command opens a window with lazy parsed #includes. The file names are expandable only if the file described is present in project directory or in any of the additional directories. 
+The command opens a window with lazy parsed #includes. The file names are expandable only if the file described is present in project directory or in any of the additional directories. Graph includes can be navigated by double clicking the item in a graph. This will open the file which has that include line in it.
 
 Options are not working right now. DGML save command will be added in future releases.
 

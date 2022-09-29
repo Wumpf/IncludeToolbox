@@ -1,4 +1,8 @@
 # Version History
+* 3.2.59
+   * Added a relative path merger for additional include directories.
+* 3.2.58
+   * Added an include graph.
 * 3.2.47
    * Enabled Trial and Error Include Removal for header files.
 * 3.2.43
