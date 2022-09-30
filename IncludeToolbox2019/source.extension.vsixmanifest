@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="IncludeToolbox.Andreas Reich.075c2e2b-7b71-45ba-b2e6-c1dadc81cfac" Version="3.2.59" Language="en-US" Publisher="Wumpf" />
+        <Identity Id="IncludeToolbox.Andreas Reich.075c2e2b-7b71-45ba-b2e6-c1dadc81cfac" Version="3.2.60" Language="en-US" Publisher="Wumpf" />
         <DisplayName>Include Toolbox 2019</DisplayName>
         <Description xml:space="preserve">Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning. VS2019 compatibility version. For VS2022 visit https://marketplace.visualstudio.com/items?itemName=Agrael.IncludeToolbox2022</Description>
         <License>License.txt</License>
         <Icon>Resources\IncludeFormatterPackage.png</Icon>
         <PreviewImage>Resources\IncludeFormatterPackage.png</PreviewImage>
-        <Tags>Include;IWYU;Include Formatting;Include Sorting;#include;C++;C;Coding</Tags>
+        <Tags>Include;IWYU;Include Formatting;Include Sorting;C++;C;Coding</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)"/>

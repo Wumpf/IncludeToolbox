@@ -11,8 +11,8 @@ namespace IncludeToolbox
         public const string Name = "Include Toolbox 2019";
         public const string Description = @"Various tools for managing C/C++ #includes: Formatting, sorting, exploring, pruning. VS2019 compatibility version. For VS2022 visit https://marketplace.visualstudio.com/items?itemName=Agrael.IncludeToolbox2022";
         public const string Language = "en-US";
-        public const string Version = "3.2.59";
+        public const string Version = "3.2.60";
         public const string Author = "Wumpf";
-        public const string Tags = "Include;IWYU;Include Formatting;Include Sorting;#include;C++;C;Coding";
+        public const string Tags = "Include;IWYU;Include Formatting;Include Sorting;C++;C;Coding";
     }
 }
