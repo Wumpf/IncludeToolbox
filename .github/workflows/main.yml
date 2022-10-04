@@ -91,17 +91,16 @@ jobs:
           files: |
             **/*.vsix
             
-      # Doesn't work
       - name: Publish 2022 extension to Marketplace
         uses: cezarypiatek/VsixPublisherAction@0.2
         with:
           extension-file: '${{ github.event.repository.name }}2022.vsix'
-          publish-manifest-file: 'vs-publish.json'
+          publish-manifest-file: 'vs-publish2022.json'
           personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
           
       - name: Publish 2019 extension to Marketplace
         uses: cezarypiatek/VsixPublisherAction@0.2
         with:
           extension-file: '${{ github.event.repository.name }}2019.vsix'
-          publish-manifest-file: 'vs-publish.json'
+          publish-manifest-file: 'vs-publish2019.json'
           personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}

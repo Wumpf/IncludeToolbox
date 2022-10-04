@@ -1,4 +1,6 @@
 # Version History
+* 3.2.62
+   * Added automatic CI/CD with publishing to Marketplace.
 * 3.2.59
    * Added a relative path merger for additional include directories.
 * 3.2.58

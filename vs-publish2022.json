@@ -2,7 +2,7 @@
   "$schema": "http://json.schemastore.org/vsix-publish",
   "categories": [ "other", "coding" ],
   "identity": {
-    "internalName": "IncludeToolbox",
+    "internalName": "IncludeToolbox2022",
     "tags": [ "C", "C++", "include", "iwyu", "formatting", "code", "include what you use"]
   },
   "assetFiles": [
@@ -33,6 +33,14 @@
     {
       "pathOnDisk": "art/iwyu.png",
       "targetPath": "art/iwyu.png"
+    },
+    {
+      "pathOnDisk": "art/IncludeGraph.png",
+      "targetPath": "art/IncludeGraph.png"
+    },
+    {
+      "pathOnDisk": "doc/changelog.md",
+      "targetPath": "doc/changelog.md"
     }
   ],
   "overview": "README.md",
