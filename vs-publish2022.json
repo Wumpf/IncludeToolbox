@@ -37,10 +37,6 @@
     {
       "pathOnDisk": "art/IncludeGraph.png",
       "targetPath": "art/IncludeGraph.png"
-    },
-    {
-      "pathOnDisk": "doc/changelog.md",
-      "targetPath": "doc/changelog.md"
     }
   ],
   "overview": "README.md",
