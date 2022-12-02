@@ -76,8 +76,14 @@ namespace IncludeToolbox
             var cfg = proj.ActiveConfiguration;
             var cl = cfg?.Rules;
             if (cl == null) { VS.MessageBox.ShowErrorAsync("IWYU Error:", "Failed to gather Compiler info.").FireAndForget(); return null; }
+
+            
             var com = (IVCRulePropertyStorage2)cl.Item("CL");
-            var dirs = com.GetEvaluatedPropertyValue("AdditionalIncludeDirectories").Replace('\\','/')
+
+            string property = com!=null? "AdditionalIncludeDirectories": "IncludePath";
+            com ??= (IVCRulePropertyStorage2)cl.Item("ConfigurationDirectories");            
+
+            var dirs = com.GetEvaluatedPropertyValue(property).Replace('\\','/')
                 .Split(';').Where(s => !string.IsNullOrWhiteSpace(s)).Select(s=>Path.IsPathRooted(s)?s:Path.Combine(dir, s));
             return dirs;
         }
