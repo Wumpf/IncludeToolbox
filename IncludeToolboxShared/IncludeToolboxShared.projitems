@@ -16,13 +16,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Commands\FormatIncludes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\IncludeGraph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\RunIWYU.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Commands\TransitiveRemoval.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TrialAndErrorRemoval_CodeWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\TrialAndErrorRemoval_Project.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graph\IncludeGraph.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\IncludeFormatter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IncludeToolboxPackage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Options\TransitiveOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToolWindows\ViewModel\IncludeTreeViewItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYU.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IWYU\IWYUApply.cs" />
