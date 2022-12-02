@@ -1,4 +1,6 @@
 # Version History
+* 3.2.66
+   * Fixed an Unreal Engine Compatibility
 * 3.2.62
    * Added automatic CI/CD with publishing to Marketplace.
 * 3.2.59
