@@ -9,6 +9,7 @@
     <Import_RootNamespace>IncludeToolboxShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Commands\CompileHeader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\GenMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\IncludeGraph_CodeWindow.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Commands\RemoveMap.cs" />

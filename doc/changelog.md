@@ -1,4 +1,6 @@
 # Version History
+* 3.2.69
+   * Added Compile Header button
 * 3.2.66
    * Fixed an Unreal Engine Compatibility
 * 3.2.62

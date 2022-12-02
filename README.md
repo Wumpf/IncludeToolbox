@@ -9,6 +9,7 @@ Include Toolbox consists of 4 different tools. All of them are only applicable t
 ![](/art/itrial.png) **[Command]** Trial and Error Include Removal  
 ![](/art/iwyu.png) **[Command]** [Include-What-You-Use](https://include-what-you-use.org/) Integration  
 ![](/art/AddPageGuides.png) **[Command]** Mapper module for IWYU  
+**[Command]** Compile Header 
 ![](/art/igraph.png)**[Tool Window]** Include Graph
 
 ## Links
@@ -129,6 +130,12 @@ Options are not working right now. DGML save command will be added in future rel
 
 The graph is not stable, searching for bugs or inconsistensies. Issues pointing inconsistensies are welcome.
   
+## Compile Header [new]
+
+Have you ever felt the situation: you have a clean API header, and you wonder if it is working standalone without any dependencies? 
+
+Well, now there is a button for that. 
+It creates an empty file in you project, includes the header and compiles it. Also it automatically adds a pch if it exists.
 
 # FAQ:
 

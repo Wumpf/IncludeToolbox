@@ -62,6 +62,17 @@
 					<LocCanonicalName>.IncludeToolbox.TrialAndError</LocCanonicalName>
 				</Strings>
 			</Button>
+			<Button guid="IncludeToolbox" id="CompileHeader" priority="0x0103" type="Button">
+				<Parent guid="IncludeToolbox" id="ContextMenuGroup" />
+				<Icon guid="ImageCatalogGuid" id="CompilableFile" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Compile Header</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.CompileHeader</LocCanonicalName>
+				</Strings>
+			</Button>
 
 			<!-- Mapper -->
 			<Button guid="IncludeToolbox" id="GenMap" priority="0x0100" type="Button">
@@ -139,6 +150,7 @@
 
 	<VisibilityConstraints>
 		<VisibilityItem guid="IncludeToolbox" id="GenMap" context="GHeaderOnly"/>
+		<VisibilityItem guid="IncludeToolbox" id="CompileHeader" context="GHeaderOnly"/>
 		<VisibilityItem guid="IncludeToolbox" id="IncludeWhatYouUseId" context="GOnlyVC"/>
 		<VisibilityItem guid="IncludeToolbox" id="TrialAndError" context="GOnlyVC"/>
 		<VisibilityItem guid="IncludeToolbox" id="IncludeGraphCodeId" context="GOnlyVC"/>
@@ -166,6 +178,7 @@
 
 			<IDSymbol name="IncludeGraphId" value="0x0106" />
 			<IDSymbol name="IncludeGraphCodeId" value="0x0107" />
+			<IDSymbol name="CompileHeader" value="0x0108" />
 
 			<IDSymbol name="ProjectWideTrialAndErrorRemoval" value="0x0110" />
 		</GuidSymbol>

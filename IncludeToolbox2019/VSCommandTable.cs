@@ -39,6 +39,7 @@ namespace IncludeToolbox
         public const int RemMap = 0x0105;
         public const int IncludeGraphId = 0x0106;
         public const int IncludeGraphCodeId = 0x0107;
+        public const int CompileHeader = 0x0108;
         public const int ProjectWideTrialAndErrorRemoval = 0x0110;
     }
 }
