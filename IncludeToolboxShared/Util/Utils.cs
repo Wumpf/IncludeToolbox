@@ -32,6 +32,7 @@ namespace IncludeToolbox
         {
             int[] line = new int[2];
             line[0] = text.IndexOf("#include"); //first
+            if (line[0] == -1) return new ReadOnlySpan<char>();
             line[1] = text.IndexOf("\n", text.LastIndexOf("#include")) - line[0] + 1; //last
             return text.AsSpan(line[0], line[1]);
         }

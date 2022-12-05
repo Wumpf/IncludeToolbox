@@ -17,6 +17,7 @@ namespace IncludeToolbox
 
         public static IncludeLine[] ParseInclues(ReadOnlySpan<char> text, bool ignore_ifdefs = true)
         {
+            if (text.IsEmpty) return new IncludeLine[0];
             List<IncludeLine> lines = new();
             Lexer.Context lctx = new(text);
 
