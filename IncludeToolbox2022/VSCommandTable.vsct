@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<Extern href="stdidcmd.h"/>
+	<Extern href="vsshlids.h"/>
+	<Include href="KnownImageIds.vsct"/>
+	<Include href="VSGlobals.vsct"/>
+	<Include href="MyImageIds.vsct"/>
+
+	<Commands package="IncludeToolbox">
+		<Groups>
+			<Group guid="IncludeToolbox" id="ItemContextGroup" priority="0x0603">
+				<Parent guid="VSMainMenu" id="ItemNode"/>
+			</Group>
+			<Group guid="IncludeToolbox" id="ProjectContextGroup" priority="0x0604">
+				<Parent guid="VSMainMenu" id="ProjectNode"/>
+			</Group>
+			<Group guid="IncludeToolbox" id="IncludeGraphGroup" priority="0x0603">
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+			</Group>
+			<Group guid="IncludeToolbox" id="MapMenuGroup" priority="0x0604">
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+			</Group>
+			<Group guid="IncludeToolbox" id="ContextMenuGroup" priority="0x0605">
+				<Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+			</Group>
+		</Groups>
+
+		<!--This section defines the elements the user can interact with, like a menu command or a button
+		or combo box in a toolbar. -->
+		<Buttons>
+			<Button guid="IncludeToolbox" id="IncludeWhatYouUseId" priority="0x0100" type="Button">
+				<Parent guid="IncludeToolbox" id="ContextMenuGroup" />
+				<Icon guid="MonikersGuid" id="hash" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Run Include-What-You-Use</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.IncludeWhatYouUseId</LocCanonicalName>
+				</Strings>
+			</Button>
+			<Button guid="IncludeToolbox" id="FormatIncludesId" priority="0x0101" type="Button">
+				<Parent guid="IncludeToolbox" id="ContextMenuGroup" />
+				<Icon guid="MonikersGuid" id="IncludeFormatterIcons_0" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Format Includes</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.FormatIncludesId</LocCanonicalName>
+				</Strings>
+			</Button>
+			<Button guid="IncludeToolbox" id="TrialAndError" priority="0x0102" type="Button">
+				<Parent guid="IncludeToolbox" id="ContextMenuGroup" />
+				<Icon guid="MonikersGuid" id="IncludeFormatterIcons_1" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Trial And Error Include Removal</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.TrialAndError</LocCanonicalName>
+				</Strings>
+			</Button>
+			<Button guid="IncludeToolbox" id="CompileHeader" priority="0x0103" type="Button">
+				<Parent guid="IncludeToolbox" id="ContextMenuGroup" />
+				<Icon guid="ImageCatalogGuid" id="CompilableFile" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Compile Header</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.CompileHeader</LocCanonicalName>
+				</Strings>
+			</Button>
+
+			<!-- Mapper -->
+			<Button guid="IncludeToolbox" id="GenMap" priority="0x0100" type="Button">
+				<Parent guid="IncludeToolbox" id="MapMenuGroup" />
+				<Icon guid="ImageCatalogGuid" id="AddPageGuides" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Generate Mapping</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.GenerateMapping</LocCanonicalName>
+				</Strings>
+			</Button>
+			<Button guid="IncludeToolbox" id="RemMap" priority="0x0101" type="Button">
+				<Parent guid="IncludeToolbox" id="MapMenuGroup" />
+				<Icon guid="ImageCatalogGuid" id="RemoveGuides" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Remove From Map</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.RemoveFromMap</LocCanonicalName>
+				</Strings>
+			</Button>
+
+			<!--Project-->
+			<Button guid="IncludeToolbox" id="IWYUProjId" priority="0x2003" type="Button">
+				<Parent guid="IncludeToolbox" id="ItemContextGroup" />
+				<Icon guid="MonikersGuid" id="hash" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Run Include-What-You-Use</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.IWYUProjId</LocCanonicalName>
+				</Strings>
+			</Button>
+
+
+			<Button guid="IncludeToolbox" id="ProjectWideTrialAndErrorRemoval" priority="0x2002" type="Button">
+				<Parent guid="IncludeToolbox" id="ProjectContextGroup" />
+				<Icon guid="MonikersGuid" id="IncludeFormatterIcons_2" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Trial and Error Include Removal</ButtonText>
+				</Strings>
+			</Button>
+
+
+			<!--Include Graph-->
+			<Button guid="IncludeToolbox" id="IncludeGraphId" priority="0x2004" type="Button">
+				<Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+				<Icon guid="ImageCatalogGuid" id="DependancyGraph" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<Strings>
+					<ButtonText>Include Graph</ButtonText>
+				</Strings>
+			</Button>
+
+			<Button guid="IncludeToolbox" id="IncludeGraphCodeId" priority="0x0100" type="Button">
+				<Parent guid="IncludeToolbox" id="IncludeGraphGroup" />
+				<Icon guid="ImageCatalogGuid" id="GraphLeftToRight" />
+				<CommandFlag>IconIsMoniker</CommandFlag>
+				<CommandFlag>DynamicVisibility</CommandFlag>
+				<CommandFlag>DefaultInvisible</CommandFlag>
+				<Strings>
+					<ButtonText>Open in Include Graph</ButtonText>
+					<LocCanonicalName>.IncludeToolbox.IncludeGraph</LocCanonicalName>
+				</Strings>
+			</Button>
+		</Buttons>
+	</Commands>
+
+	<VisibilityConstraints>
+		<VisibilityItem guid="IncludeToolbox" id="GenMap" context="GHeaderOnly"/>
+		<VisibilityItem guid="IncludeToolbox" id="CompileHeader" context="GHeaderOnly"/>
+		<VisibilityItem guid="IncludeToolbox" id="IncludeWhatYouUseId" context="GOnlyVC"/>
+		<VisibilityItem guid="IncludeToolbox" id="TrialAndError" context="GOnlyVC"/>
+		<VisibilityItem guid="IncludeToolbox" id="IncludeGraphCodeId" context="GOnlyVC"/>
+	</VisibilityConstraints>
+	<KeyBindings>
+		<KeyBinding guid="IncludeToolbox" id="IncludeWhatYouUseId" key1="K" key2="I" mod1="CONTROL" editor="guidVSStd97"/>
+		<KeyBinding guid="IncludeToolbox" id="FormatIncludesId" key1="K" key2="F" mod1="CONTROL" editor="guidVSStd97"/>
+		<KeyBinding guid="IncludeToolbox" id="TrialAndError" key1="K" key2="T" mod1="CONTROL" editor="guidVSStd97"/>
+	</KeyBindings>
+
+	<Symbols>
+		<GuidSymbol name="IncludeToolbox" value="{2e77f2e4-5f04-4052-8e63-ca2b41cd0315}">
+			<IDSymbol name="ContextMenuGroup" value="0x0001" />
+			<IDSymbol name="MapMenuGroup" value="0x0002" />
+			<IDSymbol name="IncludeGraphGroup" value="0x0003" />
+			<IDSymbol name="ItemContextGroup" value="0x021A" />
+			<IDSymbol name="ProjectContextGroup" value="0x021B" />
+			<IDSymbol name="IncludeWhatYouUseId" value="0x0100" />
+			<IDSymbol name="FormatIncludesId" value="0x0101" />
+			<IDSymbol name="TrialAndError" value="0x0102" />
+			<IDSymbol name="IWYUProjId" value="0x0103" />
+
+			<IDSymbol name="GenMap" value="0x0104" />
+			<IDSymbol name="RemMap" value="0x0105" />
+
+			<IDSymbol name="IncludeGraphId" value="0x0106" />
+			<IDSymbol name="IncludeGraphCodeId" value="0x0107" />
+			<IDSymbol name="CompileHeader" value="0x0108" />
+
+			<IDSymbol name="ProjectWideTrialAndErrorRemoval" value="0x0110" />
+		</GuidSymbol>
+
+		<!-- Visibility Constraints -->
+		<GuidSymbol name="GHeaderOnly" value="{a34e853e-8679-4a07-918e-982a1b3b0a6b}"/>
+		<GuidSymbol name="GOnlyVC" value="{1175290a-3e8f-4718-868c-c08b5d2b09a7}"/>
+	</Symbols>
+</CommandTable>

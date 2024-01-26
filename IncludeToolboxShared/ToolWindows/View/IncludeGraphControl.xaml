@@ -1,0 +1,67 @@
+﻿<UserControl  x:Class="IncludeToolbox.IncludeGraphControl"             
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:util="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:toolkit="clr-namespace:Community.VisualStudio.Toolkit;assembly=Community.VisualStudio.Toolkit"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"
+             toolkit:Themes.UseVsTheme="True"
+             xmlns:includetoolbox="clr-namespace:IncludeToolbox" d:DataContext="{d:DesignInstance Type=includetoolbox:IncludeGraphViewModel}">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ToolWindowStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!--:Themes.UseVsTheme="True"-->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" MinHeight="80"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition MinWidth="150" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Label Content="{Binding RootFilename}" FontFamily="Consolas" VerticalAlignment="Center"/>
+            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" Margin="5 5 5 5"/>
+            <Label Content="Include Count:"/>
+            <Label Content="{Binding Path=NumIncludes}"/>
+        </StackPanel>
+
+        <TabControl Grid.Row="1">
+            <TabItem Header="Include Hierarchy">
+                <TreeView ItemsSource="{Binding HierarchyIncludeTreeModel.Children}">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type includetoolbox:IncludeTreeViewItem}">
+                            <TextBlock Text="{Binding Name}" ToolTip="{Binding AbsoluteFilename}" MouseDown="OnIncludeTreeItemMouseDown"/>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </TabItem>
+            <!--<TabItem Header="Grouped by Folder">
+                <TreeView ItemsSource="{Binding FolderGroupedIncludeTreeModel.Children}" KeyDown="OnIncludeTreeItemKeyDown">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Children}" DataType="{x:Type local:IncludeTreeViewItem}">
+                            <TextBlock Text="{Binding Name}" ToolTip="{Binding AbsoluteFilename}" MouseDown="OnIncludeTreeItemMouseDown"/>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </TabItem> -->
+        </TabControl>
+
+        <!--<ProgressBar Height="25" VerticalAlignment="Center" Width="130" Grid.Row="1" IsIndeterminate="True" Visibility="{Binding Path=RefreshInProgress, Converter={StaticResource BoolToVis}}"/>-->
+
+    </Grid>
+</UserControl>

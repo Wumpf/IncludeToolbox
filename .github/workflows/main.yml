@@ -1,0 +1,106 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: "Build"
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    outputs:
+      version: ${{ steps.vsix_version.outputs.version-number }}
+    name: Build 
+    runs-on: windows-2022
+    env:
+      Configuration: Release
+      DeployExtension: False
+      Vsix2022ManifestPath: IncludeToolbox2022\source.extension.vsixmanifest
+      Vsix2019ManifestPath: IncludeToolbox2019\source.extension.vsixmanifest
+      VsixManifestSourcePath: IncludeToolbox2022\source.extension.cs
+      
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET build dependencies
+      uses: timheuer/bootstrap-dotnet@v1
+      with:
+        nuget: 'false'
+        sdk: 'false'
+        msbuild: 'true'
+    
+    - name: Increment VSIX version
+      id: vsix_version
+      uses: timheuer/vsix-version-stamp@v1
+      with:
+        manifest-file: ${{ env.Vsix2022ManifestPath }}
+        vsix-token-source-file: ${{ env.VsixManifestSourcePath }}
+        
+    - name: Sync 2019 version
+      uses: cezarypiatek/VsixVersionAction@1.0
+      with:
+        version: ${{ steps.vsix_version.outputs.version-number }}
+        vsix-manifest-file: ${{ env.Vsix2019ManifestPath }}
+        
+    - name: Build
+      run: msbuild /v:m -restore /p:OutDir=\_built
+
+    - name: Setup test
+      uses: darenm/Setup-VSTest@v1
+   
+    - name: Test
+      run: vstest.console.exe \_built\*Tests.dll
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ github.event.repository.name }}.vsix
+        path: /_built/**/*.vsix
+
+  publish:
+    if: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, '[release]')) || github.event_name == 'workflow_dispatch'  }}
+    needs: build
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download Package artifact
+        uses: actions/download-artifact@v2 
+        with:
+          name: ${{ github.event.repository.name }}.vsix
+
+      - name: Upload 2022 to Open VSIX
+        uses: timheuer/openvsixpublish@v1
+        with:
+          vsix-file: ${{ github.event.repository.name }}2022.vsix
+          
+      - name: Upload 2019 to Open VSIX
+        uses: timheuer/openvsixpublish@v1
+        with:
+          vsix-file: ${{ github.event.repository.name }}2019.vsix
+
+      - name: Tag and Release
+        id: tag_release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: Release ${{ needs.build.outputs.version }}
+          tag_name: ${{ needs.build.outputs.version }}
+          files: |
+            **/*.vsix
+            
+      - name: Publish 2022 extension to Marketplace
+        uses: cezarypiatek/VsixPublisherAction@0.2
+        with:
+          extension-file: '${{ github.event.repository.name }}2022.vsix'
+          publish-manifest-file: 'vs-publish2022.json'
+          personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
+          
+      - name: Publish 2019 extension to Marketplace
+        uses: cezarypiatek/VsixPublisherAction@0.2
+        with:
+          extension-file: '${{ github.event.repository.name }}2019.vsix'
+          publish-manifest-file: 'vs-publish2019.json'
+          personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
