@@ -128,8 +128,12 @@ namespace IncludeToolbox.IncludeWhatYouUse
             if (ext == ".h" || ext == ".hpp" || ext == ".hxx")
             {
                 File.WriteAllText(support_cpp_path, "#include \"" + file + "\"");
-                file = " -Xiwyu --check_also=" + file;
+                file = " -Xiwyu --check_also=" + "\"" + file + "\"";
                 file += " \"" + support_cpp_path.Replace("\\", "\\\\") + "\"";
+            }
+            else
+            {
+                file = "\"" + file + "\"";
             }
 
             process.StartInfo.Arguments = $"{command_line} \"@{support_path}\" {file}";
